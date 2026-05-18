@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -55,8 +56,31 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->relationLoaded('managedAreas')
-            ? $this->managedAreas->isNotEmpty()
-            : false;
+        if ($this->relationLoaded('managedAreas')) {
+            return $this->managedAreas->isNotEmpty();
+        }
+
+        return $this->managedAreas()->exists();
+    }
+
+    public function managedAreaIds(): Collection
+    {
+        return $this->managedAreas()
+            ->pluck('living_areas.id');
+    }
+
+    public function managesArea(int $livingAreaId): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if ($this->relationLoaded('managedAreas')) {
+            return $this->managedAreas->contains('id', $livingAreaId);
+        }
+
+        return $this->managedAreas()
+            ->whereKey($livingAreaId)
+            ->exists();
     }
 }

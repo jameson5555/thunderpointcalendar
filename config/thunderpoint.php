@@ -2,6 +2,12 @@
 
 return [
     'facebook_url' => env('THUNDERPOINT_FACEBOOK_URL', 'https://www.facebook.com/search/top?q=thunderpoint%20eastman'),
+    'payment_methods' => [
+        'pay_later' => 'Pay later',
+        'paypal' => 'PayPal',
+        'venmo' => 'Venmo',
+        'zelle' => 'Zelle',
+    ],
     'living_areas' => [
         [
             'name' => 'Boathouse',
