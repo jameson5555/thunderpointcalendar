@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\BookingActivityLog;
 use App\Models\Booking;
 use App\Models\LivingArea;
+use App\Models\NotificationLog;
 use App\Models\User;
 use Database\Seeders\LivingAreaSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -122,5 +124,142 @@ class PoobahAdminAccessTest extends TestCase
             ->assertRedirect(route('admin.index', absolute: false));
 
         $this->assertFalse($user->fresh()->managesArea($area->id));
+    }
+
+    public function test_poobah_can_create_a_confirmed_stay_for_a_managed_area(): void
+    {
+        $poobah = User::factory()->create();
+        $managedArea = LivingArea::query()->firstOrFail();
+        $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
+
+        $response = $this->actingAs($poobah)->post(route('admin.bookings.active.store'), [
+            'living_area_ids' => [$managedArea->id],
+            'guest_name' => 'Managed Active Guest',
+            'start_date' => '2026-12-10',
+            'end_date' => '2026-12-12',
+            'note' => 'Directly confirmed by poobah.',
+            'payment_method' => 'pay_later',
+        ]);
+
+        $response->assertRedirect(route('admin.index', absolute: false));
+
+        $booking = Booking::query()->firstOrFail();
+
+        $this->assertDatabaseHas('bookings', [
+            'id' => $booking->id,
+            'living_area_id' => $managedArea->id,
+            'guest_name' => 'Managed Active Guest',
+            'status' => Booking::STATUS_ACTIVE,
+            'approved_by' => $poobah->id,
+        ]);
+
+        $this->assertDatabaseHas('booking_activity_logs', [
+            'booking_id' => $booking->id,
+            'action' => 'active_booking_created',
+            'actor_id' => $poobah->id,
+        ]);
+    }
+
+    public function test_poobah_cannot_create_a_confirmed_stay_for_an_unmanaged_area(): void
+    {
+        $poobah = User::factory()->create();
+        $managedArea = LivingArea::query()->firstOrFail();
+        $otherArea = LivingArea::query()->skip(1)->firstOrFail();
+        $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
+
+        $this->actingAs($poobah)
+            ->post(route('admin.bookings.active.store'), [
+                'living_area_ids' => [$otherArea->id],
+                'guest_name' => 'Forbidden Active Guest',
+                'start_date' => '2026-12-15',
+                'end_date' => '2026-12-16',
+                'payment_method' => 'pay_later',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('bookings', [
+            'guest_name' => 'Forbidden Active Guest',
+        ]);
+    }
+
+    public function test_poobah_admin_screen_shows_only_scoped_activity_and_notification_logs(): void
+    {
+        $poobah = User::factory()->create();
+        $guest = User::factory()->create();
+        $managedArea = LivingArea::query()->firstOrFail();
+        $hiddenArea = LivingArea::query()->skip(1)->firstOrFail();
+        $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
+
+        $managedBooking = Booking::query()->create([
+            'booking_group' => 'managed-log-group',
+            'living_area_id' => $managedArea->id,
+            'created_by' => $guest->id,
+            'guest_name' => 'Scoped Guest',
+            'start_date' => '2026-12-20',
+            'end_date' => '2026-12-21',
+            'status' => Booking::STATUS_DRAFT,
+            'amount_cents' => 4000,
+            'payment_status' => Booking::PAYMENT_UNPAID,
+            'payment_method' => 'pay_later',
+        ]);
+
+        $hiddenBooking = Booking::query()->create([
+            'booking_group' => 'hidden-log-group',
+            'living_area_id' => $hiddenArea->id,
+            'created_by' => $guest->id,
+            'guest_name' => 'Hidden Guest',
+            'start_date' => '2026-12-22',
+            'end_date' => '2026-12-23',
+            'status' => Booking::STATUS_DRAFT,
+            'amount_cents' => 4000,
+            'payment_status' => Booking::PAYMENT_UNPAID,
+            'payment_method' => 'pay_later',
+        ]);
+
+        BookingActivityLog::query()->create([
+            'booking_id' => $managedBooking->id,
+            'booking_group' => $managedBooking->booking_group,
+            'actor_id' => $poobah->id,
+            'action' => 'active_booking_created',
+            'to_status' => Booking::STATUS_ACTIVE,
+        ]);
+
+        BookingActivityLog::query()->create([
+            'booking_id' => $hiddenBooking->id,
+            'booking_group' => $hiddenBooking->booking_group,
+            'actor_id' => $poobah->id,
+            'action' => 'active_booking_created',
+            'to_status' => Booking::STATUS_ACTIVE,
+        ]);
+
+        NotificationLog::query()->create([
+            'booking_id' => $managedBooking->id,
+            'booking_group' => $managedBooking->booking_group,
+            'user_id' => $guest->id,
+            'notification_type' => 'draft_submitted',
+            'recipient_email' => 'managed@example.com',
+            'recipient_name' => 'Managed Recipient',
+            'subject' => 'Managed Notification',
+            'sent_at' => now(),
+        ]);
+
+        NotificationLog::query()->create([
+            'booking_id' => $hiddenBooking->id,
+            'booking_group' => $hiddenBooking->booking_group,
+            'user_id' => $guest->id,
+            'notification_type' => 'draft_submitted',
+            'recipient_email' => 'hidden@example.com',
+            'recipient_name' => 'Hidden Recipient',
+            'subject' => 'Hidden Notification',
+            'sent_at' => now(),
+        ]);
+
+        $response = $this->actingAs($poobah)->get(route('admin.index'));
+
+        $response->assertOk();
+        $response->assertSee('Scoped Guest');
+        $response->assertSee('Managed Notification');
+        $response->assertDontSee('Hidden Guest');
+        $response->assertDontSee('Hidden Notification');
     }
 }

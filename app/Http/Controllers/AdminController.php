@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookingActivityLog;
 use App\Models\Booking;
 use App\Models\LivingArea;
+use App\Models\NotificationLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -43,6 +46,8 @@ class AdminController extends Controller
             'livingAreas' => $livingAreas,
             'bookingGroups' => $bookingGroups,
             'paymentMethods' => config('thunderpoint.payment_methods'),
+            'recentActivity' => $this->recentActivity($accessibleAreaIds),
+            'recentNotifications' => $this->recentNotifications($accessibleAreaIds),
             'users' => $user->isAdmin()
                 ? User::query()->with('managedAreas')->orderBy('name')->get()
                 : collect(),
@@ -70,5 +75,57 @@ class AdminController extends Controller
             'payment_reference' => $first->payment_reference,
             'approved_at' => $first->approved_at,
         ];
+    }
+
+    private function recentActivity(?Collection $accessibleAreaIds): Collection
+    {
+        $query = BookingActivityLog::query()
+            ->with(['actor', 'booking.livingArea'])
+            ->latest();
+
+        if ($accessibleAreaIds !== null) {
+            $query->whereIn('booking_id', Booking::query()->select('id')->whereIn('living_area_id', $accessibleAreaIds));
+        }
+
+        return $query->limit(8)->get()->map(function (BookingActivityLog $log): array {
+            $areaName = $log->booking?->livingArea?->name ?? 'Selected area';
+            $guestName = $log->booking?->guest_name ?? 'Booking';
+
+            $headline = match ($log->action) {
+                'draft_submitted' => sprintf('%s submitted for %s', $guestName, $areaName),
+                'booking_approved' => sprintf('%s approved for %s', $areaName, $guestName),
+                'active_booking_created' => sprintf('%s confirmed for %s', $guestName, $areaName),
+                default => Str::headline(str_replace('_', ' ', $log->action)),
+            };
+
+            return [
+                'booking_group' => $log->booking_group,
+                'headline' => $headline,
+                'context' => collect([
+                    optional($log->created_at)->format('M j, g:i a'),
+                    $log->actor?->name ? sprintf('by %s', $log->actor->name) : null,
+                ])->filter()->join(' · '),
+            ];
+        });
+    }
+
+    private function recentNotifications(?Collection $accessibleAreaIds): Collection
+    {
+        $query = NotificationLog::query()->latest();
+
+        if ($accessibleAreaIds !== null) {
+            $query->whereIn('booking_group', Booking::query()->select('booking_group')->whereIn('living_area_id', $accessibleAreaIds)->distinct());
+        }
+
+        return $query->limit(8)->get()->map(function (NotificationLog $log): array {
+            return [
+                'booking_group' => $log->booking_group,
+                'headline' => $log->subject,
+                'context' => collect([
+                    sprintf('To %s', $log->recipient_name ?: $log->recipient_email),
+                    optional($log->sent_at ?? $log->created_at)->format('M j, g:i a'),
+                ])->filter()->join(' · '),
+            ];
+        });
     }
 }

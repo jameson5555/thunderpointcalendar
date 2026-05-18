@@ -119,4 +119,29 @@ class AdminBookingApprovalTest extends TestCase
         ]);
         $this->assertSame(1, NotificationLog::query()->where('booking_group', 'notify-approval-group')->where('notification_type', 'booking_approved')->count());
     }
+
+    public function test_admin_can_create_a_confirmed_booking_group_directly(): void
+    {
+        $admin = User::factory()->create(['site_role' => 'admin']);
+        $areas = LivingArea::query()->take(2)->get();
+
+        $response = $this->actingAs($admin)->post(route('admin.bookings.active.store'), [
+            'living_area_ids' => $areas->pluck('id')->all(),
+            'guest_name' => 'Admin Direct Guest',
+            'start_date' => '2026-12-27',
+            'end_date' => '2026-12-28',
+            'payment_method' => 'pay_later',
+        ]);
+
+        $response->assertRedirect(route('admin.index', absolute: false));
+
+        $this->assertSame(2, Booking::query()->where('guest_name', 'Admin Direct Guest')->count());
+        $this->assertSame(1, Booking::query()->where('guest_name', 'Admin Direct Guest')->distinct('booking_group')->count('booking_group'));
+        $this->assertDatabaseHas('bookings', [
+            'guest_name' => 'Admin Direct Guest',
+            'status' => Booking::STATUS_ACTIVE,
+            'approved_by' => $admin->id,
+        ]);
+        $this->assertSame(2, BookingActivityLog::query()->where('action', 'active_booking_created')->where('actor_id', $admin->id)->count());
+    }
 }
