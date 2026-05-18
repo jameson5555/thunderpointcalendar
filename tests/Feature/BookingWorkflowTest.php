@@ -2,11 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Mail\DraftBookingSubmittedMail;
+use App\Models\BookingActivityLog;
 use App\Models\Booking;
 use App\Models\LivingArea;
+use App\Models\NotificationLog;
 use App\Models\User;
 use Database\Seeders\LivingAreaSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class BookingWorkflowTest extends TestCase
@@ -148,5 +152,58 @@ class BookingWorkflowTest extends TestCase
             'payment_reference' => 'venmo-123',
             'payment_status' => Booking::PAYMENT_SUBMITTED,
         ]);
+    }
+
+    public function test_draft_booking_submission_sends_emails_and_logs_activity(): void
+    {
+        Mail::fake();
+
+        $guest = User::factory()->create(['name' => 'Jamie Booker']);
+        $admin = User::factory()->create([
+            'site_role' => 'admin',
+            'email' => 'admin@thunderpoint.test',
+        ]);
+        $poobah = User::factory()->create(['email' => 'poobah@thunderpoint.test']);
+        $area = LivingArea::query()->firstOrFail();
+
+        $poobah->managedAreas()->attach($area->id, ['role' => 'poobah']);
+
+        $response = $this->actingAs($guest)->post(route('bookings.store'), [
+            'living_area_ids' => [$area->id],
+            'guest_name' => 'Email Guest',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'payment_method' => 'venmo',
+            'payment_reference' => 'venmo-555',
+        ]);
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $booking = Booking::query()->firstOrFail();
+
+        Mail::assertSent(DraftBookingSubmittedMail::class, 2);
+        Mail::assertSent(DraftBookingSubmittedMail::class, fn (DraftBookingSubmittedMail $mail) => $mail->hasTo($admin->email));
+        Mail::assertSent(DraftBookingSubmittedMail::class, fn (DraftBookingSubmittedMail $mail) => $mail->hasTo($poobah->email));
+
+        $this->assertDatabaseHas('booking_activity_logs', [
+            'booking_id' => $booking->id,
+            'booking_group' => $booking->booking_group,
+            'actor_id' => $guest->id,
+            'action' => 'draft_submitted',
+            'to_status' => Booking::STATUS_DRAFT,
+        ]);
+
+        $this->assertSame(2, NotificationLog::query()->where('booking_group', $booking->booking_group)->count());
+        $this->assertDatabaseHas('notification_logs', [
+            'booking_group' => $booking->booking_group,
+            'notification_type' => 'draft_submitted',
+            'recipient_email' => $admin->email,
+        ]);
+        $this->assertDatabaseHas('notification_logs', [
+            'booking_group' => $booking->booking_group,
+            'notification_type' => 'draft_submitted',
+            'recipient_email' => $poobah->email,
+        ]);
+        $this->assertSame(1, BookingActivityLog::query()->where('booking_group', $booking->booking_group)->where('action', 'draft_submitted')->count());
     }
 }

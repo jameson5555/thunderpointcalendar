@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BookingPaymentUpdateRequest;
 use App\Http\Requests\BookingStoreRequest;
+use App\Models\BookingActivityLog;
 use App\Models\Booking;
 use App\Models\LivingArea;
+use App\Services\BookingNotificationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
@@ -15,6 +17,10 @@ use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
+    public function __construct(private readonly BookingNotificationService $notifications)
+    {
+    }
+
     public function store(BookingStoreRequest $request): RedirectResponse
     {
         $validated = $request->validated();
@@ -34,10 +40,11 @@ class BookingController extends Controller
             $validated['payment_reference'] ?? null,
         );
         $groupCode = (string) Str::uuid();
+        $createdBookingIds = [];
 
-        DB::transaction(function () use ($request, $validated, $livingAreas, $startDate, $endDate, $amountCents, $paymentStatus, $groupCode): void {
+        DB::transaction(function () use ($request, $validated, $livingAreas, $startDate, $endDate, $amountCents, $paymentStatus, $groupCode, &$createdBookingIds): void {
             foreach ($livingAreas as $livingArea) {
-                Booking::create([
+                $booking = Booking::create([
                     'booking_group' => $groupCode,
                     'living_area_id' => $livingArea->id,
                     'created_by' => $request->user()->id,
@@ -51,8 +58,29 @@ class BookingController extends Controller
                     'payment_method' => $validated['payment_method'] ?? 'pay_later',
                     'payment_reference' => $validated['payment_reference'] ?? null,
                 ]);
+
+                $createdBookingIds[] = $booking->id;
+
+                BookingActivityLog::create([
+                    'booking_id' => $booking->id,
+                    'booking_group' => $groupCode,
+                    'actor_id' => $request->user()->id,
+                    'action' => 'draft_submitted',
+                    'to_status' => Booking::STATUS_DRAFT,
+                    'details' => [
+                        'living_area_id' => $livingArea->id,
+                        'guest_name' => $validated['guest_name'],
+                    ],
+                ]);
             }
         });
+
+        $createdBookings = Booking::query()
+            ->with(['livingArea', 'creator'])
+            ->whereKey($createdBookingIds)
+            ->get();
+
+        $this->notifications->notifyDraftSubmitted($createdBookings);
 
         return redirect()
             ->route('dashboard')

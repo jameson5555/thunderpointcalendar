@@ -33,7 +33,7 @@
                                 default => 'border border-dashed border-[rgba(61,52,39,0.18)] bg-white/70 text-[rgba(61,52,39,0.72)]',
                             };
                         @endphp
-                        <article class="rounded-[1.5rem] border border-[rgba(61,52,39,0.1)] bg-[rgba(255,250,240,0.82)] p-5 shadow-[0_18px_60px_rgba(61,52,39,0.08)]">
+                        <article id="booking-group-{{ $booking['group'] }}" class="rounded-[1.5rem] border border-[rgba(61,52,39,0.1)] bg-[rgba(255,250,240,0.82)] p-5 shadow-[0_18px_60px_rgba(61,52,39,0.08)]">
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div>
                                     <div class="flex flex-wrap gap-2">
