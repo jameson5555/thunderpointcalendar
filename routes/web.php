@@ -4,6 +4,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminBookingApprovalController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LivingAreaManagerController;
+use App\Http\Controllers\LivingAreaSettingsController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +25,8 @@ Route::get('/admin', AdminController::class)
 
 Route::middleware(['auth', 'approved'])->group(function () {
     Route::patch('/admin/bookings/{bookingGroup}/approve', AdminBookingApprovalController::class)->name('admin.bookings.approve');
+    Route::patch('/admin/living-areas/{livingArea}', LivingAreaSettingsController::class)->name('admin.living-areas.update');
+    Route::patch('/admin/living-areas/{livingArea}/managers/{user}', LivingAreaManagerController::class)->name('admin.living-areas.managers.update');
 
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::patch('/bookings/{bookingGroup}/payment', [BookingController::class, 'updatePayment'])->name('bookings.payment.update');

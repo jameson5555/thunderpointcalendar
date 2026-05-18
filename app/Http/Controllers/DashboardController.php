@@ -113,13 +113,16 @@ class DashboardController extends Controller
         $first = $group->first();
         $areaNames = $group->pluck('livingArea.name')->filter()->values();
 
+        $status = $group->pluck('status')->unique()->values();
+        $groupStatus = $status->count() > 1 ? 'mixed' : $status->first();
+
         return [
             'group' => $first->booking_group ?: (string) $first->id,
             'areas' => $areaNames,
             'guest_name' => $first->guest_name,
             'start_date' => $first->start_date,
             'end_date' => $first->end_date,
-            'status' => $group->contains('status', Booking::STATUS_ACTIVE) ? Booking::STATUS_ACTIVE : Booking::STATUS_DRAFT,
+            'status' => $groupStatus,
             'amount_cents' => $first->amount_cents,
             'payment_status' => $first->payment_status,
             'payment_method' => $first->payment_method,

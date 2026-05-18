@@ -16,7 +16,7 @@
                         {{ __('Calendar') }}
                     </x-nav-link>
 
-                    @if (Auth::user()->isAdmin())
+                    @if (Auth::user()->canAccessAdmin())
                         <x-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.*')">
                             {{ __('Admin') }}
                         </x-nav-link>
@@ -27,7 +27,7 @@
             <!-- Settings Dropdown -->
             <div class="hidden md:flex md:items-center md:gap-4">
                 <span class="rounded-full bg-[rgba(49,91,63,0.08)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--tp-pine)]">
-                    {{ Auth::user()->isAdmin() ? 'Site Admin' : 'Member' }}
+                    {{ Auth::user()->isAdmin() ? 'Site Admin' : (Auth::user()->canAccessAdmin() ? 'Poobah' : 'Member') }}
                 </span>
 
                 <x-dropdown align="right" width="48">
@@ -87,7 +87,7 @@
                 {{ __('Calendar') }}
             </x-responsive-nav-link>
 
-            @if (Auth::user()->isAdmin())
+            @if (Auth::user()->canAccessAdmin())
                 <x-responsive-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.*')">
                     {{ __('Admin') }}
                 </x-responsive-nav-link>
