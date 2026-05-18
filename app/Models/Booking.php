@@ -13,6 +13,8 @@ class Booking extends Model
 
     public const STATUS_ACTIVE = 'active';
 
+    public const STATUS_CANCELLED = 'cancelled';
+
     public const PAYMENT_UNPAID = 'unpaid';
 
     public const PAYMENT_PENDING = 'pending';
@@ -24,6 +26,7 @@ class Booking extends Model
         'living_area_id',
         'created_by',
         'approved_by',
+        'cancelled_by',
         'guest_name',
         'start_date',
         'end_date',
@@ -34,6 +37,7 @@ class Booking extends Model
         'payment_method',
         'payment_reference',
         'approved_at',
+        'cancelled_at',
     ];
 
     protected function casts(): array
@@ -42,6 +46,7 @@ class Booking extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'approved_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -58,6 +63,11 @@ class Booking extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function canceller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 
     public function scopeBlocking(Builder $query): Builder

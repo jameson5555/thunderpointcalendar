@@ -56,6 +56,19 @@ class BookingGroupService
             ->get();
     }
 
+    public function resolvePaymentStatus(string $paymentMethod, ?string $paymentReference): string
+    {
+        if ($paymentMethod === 'pay_later') {
+            return Booking::PAYMENT_UNPAID;
+        }
+
+        if (filled($paymentReference)) {
+            return Booking::PAYMENT_SUBMITTED;
+        }
+
+        return Booking::PAYMENT_PENDING;
+    }
+
     private function ensureAreasAreAvailable(Collection $livingAreas, CarbonImmutable $startDate, CarbonImmutable $endDate): void
     {
         $conflicts = Booking::query()
@@ -93,16 +106,4 @@ class BookingGroupService
             });
     }
 
-    private function resolvePaymentStatus(string $paymentMethod, ?string $paymentReference): string
-    {
-        if ($paymentMethod === 'pay_later') {
-            return Booking::PAYMENT_UNPAID;
-        }
-
-        if (filled($paymentReference)) {
-            return Booking::PAYMENT_SUBMITTED;
-        }
-
-        return Booking::PAYMENT_PENDING;
-    }
 }

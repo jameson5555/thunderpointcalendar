@@ -144,4 +144,122 @@ class AdminBookingApprovalTest extends TestCase
         ]);
         $this->assertSame(2, BookingActivityLog::query()->where('action', 'active_booking_created')->where('actor_id', $admin->id)->count());
     }
+
+    public function test_admin_can_update_a_confirmed_booking_group(): void
+    {
+        $admin = User::factory()->create(['site_role' => 'admin']);
+        $guest = User::factory()->create();
+        $areas = LivingArea::query()->take(2)->get();
+
+        foreach ($areas as $area) {
+            Booking::query()->create([
+                'booking_group' => 'editable-group',
+                'living_area_id' => $area->id,
+                'created_by' => $guest->id,
+                'approved_by' => $admin->id,
+                'guest_name' => 'Original Active Guest',
+                'start_date' => '2027-01-05',
+                'end_date' => '2027-01-06',
+                'status' => Booking::STATUS_ACTIVE,
+                'amount_cents' => 4000,
+                'payment_status' => Booking::PAYMENT_UNPAID,
+                'payment_method' => 'pay_later',
+                'approved_at' => now(),
+            ]);
+        }
+
+        $response = $this->actingAs($admin)->patch(route('admin.bookings.update', 'editable-group'), [
+            'living_area_ids' => $areas->pluck('id')->all(),
+            'guest_name' => 'Updated Active Guest',
+            'start_date' => '2027-01-08',
+            'end_date' => '2027-01-10',
+            'note' => 'Updated stay details.',
+            'payment_method' => 'venmo',
+            'payment_reference' => 'venmo-edit-1',
+        ]);
+
+        $response->assertRedirect(route('admin.index', absolute: false));
+
+        $this->assertSame(2, Booking::query()->where('guest_name', 'Updated Active Guest')->where('status', Booking::STATUS_ACTIVE)->count());
+        $this->assertSame(2, Booking::query()->where('booking_group', 'editable-group')->where('status', Booking::STATUS_CANCELLED)->count());
+        $this->assertSame(2, BookingActivityLog::query()->where('action', 'booking_updated')->count());
+        $this->assertSame(2, BookingActivityLog::query()->where('action', 'booking_cancelled')->where('details->reason', 'replaced_by_edit')->count());
+    }
+
+    public function test_admin_can_cancel_a_confirmed_booking_group(): void
+    {
+        $admin = User::factory()->create(['site_role' => 'admin']);
+        $guest = User::factory()->create();
+        $areas = LivingArea::query()->take(2)->get();
+
+        foreach ($areas as $area) {
+            Booking::query()->create([
+                'booking_group' => 'cancel-group',
+                'living_area_id' => $area->id,
+                'created_by' => $guest->id,
+                'approved_by' => $admin->id,
+                'guest_name' => 'Cancellable Guest',
+                'start_date' => '2027-01-12',
+                'end_date' => '2027-01-13',
+                'status' => Booking::STATUS_ACTIVE,
+                'amount_cents' => 4000,
+                'payment_status' => Booking::PAYMENT_UNPAID,
+                'payment_method' => 'pay_later',
+                'approved_at' => now(),
+            ]);
+        }
+
+        $response = $this->actingAs($admin)->patch(route('admin.bookings.cancel', 'cancel-group'));
+
+        $response->assertRedirect(route('admin.index', absolute: false));
+
+        $this->assertSame(2, Booking::query()->where('booking_group', 'cancel-group')->where('status', Booking::STATUS_CANCELLED)->count());
+        $this->assertSame(2, BookingActivityLog::query()->where('booking_group', 'cancel-group')->where('action', 'booking_cancelled')->count());
+    }
+
+    public function test_admin_screen_shows_inline_booking_history_details(): void
+    {
+        $admin = User::factory()->create(['site_role' => 'admin']);
+        $guest = User::factory()->create();
+        $area = LivingArea::query()->firstOrFail();
+
+        $booking = Booking::query()->create([
+            'booking_group' => 'history-group',
+            'living_area_id' => $area->id,
+            'created_by' => $guest->id,
+            'guest_name' => 'History Guest',
+            'start_date' => '2027-01-20',
+            'end_date' => '2027-01-21',
+            'status' => Booking::STATUS_ACTIVE,
+            'amount_cents' => 4000,
+            'payment_status' => Booking::PAYMENT_UNPAID,
+            'payment_method' => 'pay_later',
+        ]);
+
+        BookingActivityLog::query()->create([
+            'booking_id' => $booking->id,
+            'booking_group' => 'history-group',
+            'actor_id' => $admin->id,
+            'action' => 'booking_updated',
+            'to_status' => Booking::STATUS_ACTIVE,
+        ]);
+
+        NotificationLog::query()->create([
+            'booking_id' => $booking->id,
+            'booking_group' => 'history-group',
+            'user_id' => $guest->id,
+            'notification_type' => 'booking_approved',
+            'recipient_email' => $guest->email,
+            'recipient_name' => $guest->name,
+            'subject' => 'History Email',
+            'sent_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.index'))
+            ->assertOk()
+            ->assertSee('Booking history')
+            ->assertSee('History Email')
+            ->assertSee('Confirmed stay updated for');
+    }
 }

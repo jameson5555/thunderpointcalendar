@@ -70,7 +70,7 @@ class BookingController extends Controller
         $validated = $request->validated();
         $paymentMethod = $validated['payment_method'];
         $paymentReference = $validated['payment_reference'] ?? null;
-        $paymentStatus = $this->resolvePaymentStatus($paymentMethod, $paymentReference);
+        $paymentStatus = $this->bookingGroups->resolvePaymentStatus($paymentMethod, $paymentReference);
 
         Booking::query()
             ->where('booking_group', $bookingGroup)
@@ -83,18 +83,5 @@ class BookingController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('status', 'Payment details updated for your draft booking.');
-    }
-
-    private function resolvePaymentStatus(string $paymentMethod, ?string $paymentReference): string
-    {
-        if ($paymentMethod === 'pay_later') {
-            return Booking::PAYMENT_UNPAID;
-        }
-
-        if (filled($paymentReference)) {
-            return Booking::PAYMENT_SUBMITTED;
-        }
-
-        return Booking::PAYMENT_PENDING;
     }
 }

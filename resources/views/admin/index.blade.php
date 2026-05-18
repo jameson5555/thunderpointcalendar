@@ -147,15 +147,127 @@
                                 </div>
                             </div>
 
+                            @if ($booking['note'])
+                                <div class="mt-4 rounded-[1rem] border border-[rgba(61,52,39,0.08)] bg-white/75 px-4 py-3 text-sm leading-6 text-[rgba(61,52,39,0.76)]">
+                                    {{ $booking['note'] }}
+                                </div>
+                            @endif
+
                             @if ($booking['status'] === 'draft')
                                 <form method="POST" action="{{ route('admin.bookings.approve', $booking['group']) }}" class="mt-5">
                                     @csrf
                                     @method('PATCH')
                                     <x-primary-button class="justify-center">{{ __($isAdminView ? 'Approve Draft Booking' : 'Approve My Area Draft') }}</x-primary-button>
                                 </form>
+                            @elseif ($booking['status'] === 'active')
+                                <details class="mt-5 rounded-[1.2rem] border border-[rgba(61,52,39,0.08)] bg-white/75 px-4 py-4">
+                                    <summary class="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-pine)]">Edit or cancel this confirmed stay</summary>
+
+                                    <form method="POST" action="{{ route('admin.bookings.update', $booking['group']) }}" class="mt-4 space-y-4">
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <div>
+                                            <x-input-label :for="'edit_guest_name_'.$booking['group']" :value="__('Guest Name')" />
+                                            <x-text-input id="{{ 'edit_guest_name_'.$booking['group'] }}" name="guest_name" type="text" class="mt-2 w-full" :value="old('guest_name', $booking['guest_name'])" />
+                                        </div>
+
+                                        <div class="grid gap-4 md:grid-cols-2">
+                                            <div>
+                                                <x-input-label :for="'edit_start_date_'.$booking['group']" :value="__('Start Date')" />
+                                                <x-text-input id="{{ 'edit_start_date_'.$booking['group'] }}" name="start_date" type="date" class="mt-2 w-full" :value="old('start_date', $booking['start_date']->toDateString())" />
+                                            </div>
+                                            <div>
+                                                <x-input-label :for="'edit_end_date_'.$booking['group']" :value="__('End Date')" />
+                                                <x-text-input id="{{ 'edit_end_date_'.$booking['group'] }}" name="end_date" type="date" class="mt-2 w-full" :value="old('end_date', $booking['end_date']->toDateString())" />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <x-input-label :value="__('Living Areas')" />
+                                            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                                                @foreach ($livingAreas as $area)
+                                                    <label class="flex items-center gap-3 rounded-[1rem] border border-[rgba(61,52,39,0.1)] bg-white/75 px-4 py-3 text-sm font-semibold text-[var(--tp-bark)]">
+                                                        <input type="checkbox" name="living_area_ids[]" value="{{ $area->id }}" class="rounded border-[rgba(61,52,39,0.24)] text-[var(--tp-pine)] focus:ring-[var(--tp-lake)]" @checked(collect(old('living_area_ids', $booking['area_ids']->all()))->contains($area->id))>
+                                                        <span class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
+                                                        <span>{{ $area->name }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <x-input-label :for="'edit_note_'.$booking['group']" :value="__('Stay Note')" />
+                                            <textarea id="{{ 'edit_note_'.$booking['group'] }}" name="note" rows="4" class="mt-2 w-full rounded-[1.5rem] border border-[rgba(61,52,39,0.14)] bg-white/90 px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-lake)] focus:ring-[var(--tp-lake)]">{{ old('note', $booking['note']) }}</textarea>
+                                        </div>
+
+                                        <div class="grid gap-4 md:grid-cols-2">
+                                            <div>
+                                                <x-input-label :for="'edit_payment_method_'.$booking['group']" :value="__('Payment Method')" />
+                                                <select id="{{ 'edit_payment_method_'.$booking['group'] }}" name="payment_method" class="mt-2 w-full rounded-[1.5rem] border border-[rgba(61,52,39,0.14)] bg-white/90 px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-lake)] focus:ring-[var(--tp-lake)]">
+                                                    @foreach ($paymentMethods as $paymentValue => $paymentLabel)
+                                                        <option value="{{ $paymentValue }}" @selected(old('payment_method', $booking['payment_method']) === $paymentValue)>{{ $paymentLabel }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <x-input-label :for="'edit_payment_reference_'.$booking['group']" :value="__('Payment Reference')" />
+                                                <x-text-input id="{{ 'edit_payment_reference_'.$booking['group'] }}" name="payment_reference" type="text" class="mt-2 w-full" :value="old('payment_reference', $booking['payment_reference'])" />
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-3">
+                                            <x-primary-button class="justify-center">{{ __('Save Confirmed Stay') }}</x-primary-button>
+                                        </div>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('admin.bookings.cancel', $booking['group']) }}" class="mt-4">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-full border border-[rgba(140,63,39,0.18)] bg-[rgba(140,63,39,0.08)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-ember)]">Cancel Confirmed Stay</button>
+                                    </form>
+                                </details>
                             @else
-                                <p class="mt-5 text-sm font-semibold text-[var(--tp-pine)]">Approved {{ optional($booking['approved_at'])->format('M j, Y g:i a') }}</p>
+                                <p class="mt-5 text-sm font-semibold {{ $booking['status'] === 'cancelled' ? 'text-[var(--tp-ember)]' : 'text-[var(--tp-pine)]' }}">
+                                    {{ $booking['status'] === 'cancelled'
+                                        ? 'Cancelled '.optional($booking['cancelled_at'])->format('M j, Y g:i a')
+                                        : 'Approved '.optional($booking['approved_at'])->format('M j, Y g:i a') }}
+                                </p>
                             @endif
+
+                            <details class="mt-5 rounded-[1.2rem] border border-[rgba(61,52,39,0.08)] bg-white/75 px-4 py-4">
+                                <summary class="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-pine)]">Booking history</summary>
+
+                                <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(61,52,39,0.58)]">Activity</p>
+                                        <div class="mt-3 space-y-3">
+                                            @forelse ($booking['history']['activity'] as $entry)
+                                                <div class="rounded-[1rem] border border-[rgba(61,52,39,0.08)] bg-[rgba(244,237,218,0.56)] px-4 py-3 text-sm text-[var(--tp-bark)]">
+                                                    <p class="font-semibold">{{ $entry['headline'] }}</p>
+                                                    <p class="mt-1 text-xs uppercase tracking-[0.16em] text-[rgba(61,52,39,0.58)]">{{ $entry['context'] }}</p>
+                                                </div>
+                                            @empty
+                                                <p class="text-sm leading-6 text-[rgba(61,52,39,0.68)]">No activity has been recorded for this booking group yet.</p>
+                                            @endforelse
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(61,52,39,0.58)]">Emails</p>
+                                        <div class="mt-3 space-y-3">
+                                            @forelse ($booking['history']['notifications'] as $entry)
+                                                <div class="rounded-[1rem] border border-[rgba(61,52,39,0.08)] bg-[rgba(244,237,218,0.56)] px-4 py-3 text-sm text-[var(--tp-bark)]">
+                                                    <p class="font-semibold">{{ $entry['headline'] }}</p>
+                                                    <p class="mt-1 text-xs uppercase tracking-[0.16em] text-[rgba(61,52,39,0.58)]">{{ $entry['context'] }}</p>
+                                                </div>
+                                            @empty
+                                                <p class="text-sm leading-6 text-[rgba(61,52,39,0.68)]">No emails have been logged for this booking group yet.</p>
+                                            @endforelse
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
                         </article>
                     @empty
                         <div class="rounded-[1.4rem] border border-dashed border-[rgba(61,52,39,0.18)] bg-white/50 px-5 py-8 text-center text-sm leading-6 text-[rgba(61,52,39,0.68)] md:col-span-2">

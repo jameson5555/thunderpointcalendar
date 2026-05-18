@@ -64,6 +64,7 @@ class AdminController extends Controller
         return [
             'group' => $first->booking_group ?: (string) $first->id,
             'areas' => $group->pluck('livingArea.name')->filter()->values(),
+            'area_ids' => $group->pluck('living_area_id')->values(),
             'guest_name' => $first->guest_name,
             'requested_by' => $first->creator?->name,
             'start_date' => $first->start_date,
@@ -74,6 +75,57 @@ class AdminController extends Controller
             'payment_method' => $first->payment_method,
             'payment_reference' => $first->payment_reference,
             'approved_at' => $first->approved_at,
+            'cancelled_at' => $group->pluck('cancelled_at')->filter()->sortDesc()->first(),
+            'note' => $first->note,
+            'history' => $this->groupHistory($first->booking_group ?: (string) $first->id),
+        ];
+    }
+
+    private function groupHistory(string $bookingGroup): array
+    {
+        $activity = BookingActivityLog::query()
+            ->with(['actor', 'booking.livingArea'])
+            ->where('booking_group', $bookingGroup)
+            ->latest()
+            ->get()
+            ->map(function (BookingActivityLog $log): array {
+                $areaName = $log->booking?->livingArea?->name ?? 'Selected area';
+
+                return [
+                    'headline' => match ($log->action) {
+                        'draft_submitted' => sprintf('Draft submitted for %s', $areaName),
+                        'booking_approved' => sprintf('Approved for %s', $areaName),
+                        'active_booking_created' => sprintf('Confirmed stay created for %s', $areaName),
+                        'booking_updated' => sprintf('Confirmed stay updated for %s', $areaName),
+                        'booking_cancelled' => sprintf('Cancelled for %s', $areaName),
+                        default => Str::headline(str_replace('_', ' ', $log->action)),
+                    },
+                    'context' => collect([
+                        optional($log->created_at)->format('M j, g:i a'),
+                        $log->actor?->name ? sprintf('by %s', $log->actor->name) : null,
+                    ])->filter()->join(' · '),
+                ];
+            })
+            ->all();
+
+        $notifications = NotificationLog::query()
+            ->where('booking_group', $bookingGroup)
+            ->latest()
+            ->get()
+            ->map(function (NotificationLog $log): array {
+                return [
+                    'headline' => $log->subject,
+                    'context' => collect([
+                        sprintf('To %s', $log->recipient_name ?: $log->recipient_email),
+                        optional($log->sent_at ?? $log->created_at)->format('M j, g:i a'),
+                    ])->filter()->join(' · '),
+                ];
+            })
+            ->all();
+
+        return [
+            'activity' => $activity,
+            'notifications' => $notifications,
         ];
     }
 

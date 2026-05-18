@@ -262,4 +262,80 @@ class PoobahAdminAccessTest extends TestCase
         $response->assertDontSee('Hidden Guest');
         $response->assertDontSee('Hidden Notification');
     }
+
+    public function test_poobah_can_update_a_confirmed_stay_for_managed_areas(): void
+    {
+        $poobah = User::factory()->create();
+        $guest = User::factory()->create();
+        $managedArea = LivingArea::query()->firstOrFail();
+        $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
+
+        Booking::query()->create([
+            'booking_group' => 'poobah-edit-group',
+            'living_area_id' => $managedArea->id,
+            'created_by' => $guest->id,
+            'approved_by' => $poobah->id,
+            'guest_name' => 'Old Managed Guest',
+            'start_date' => '2027-02-01',
+            'end_date' => '2027-02-02',
+            'status' => Booking::STATUS_ACTIVE,
+            'amount_cents' => 2000,
+            'payment_status' => Booking::PAYMENT_UNPAID,
+            'payment_method' => 'pay_later',
+            'approved_at' => now(),
+        ]);
+
+        $this->actingAs($poobah)
+            ->patch(route('admin.bookings.update', 'poobah-edit-group'), [
+                'living_area_ids' => [$managedArea->id],
+                'guest_name' => 'New Managed Guest',
+                'start_date' => '2027-02-03',
+                'end_date' => '2027-02-04',
+                'payment_method' => 'paypal',
+            ])
+            ->assertRedirect(route('admin.index', absolute: false));
+
+        $this->assertDatabaseHas('bookings', [
+            'guest_name' => 'New Managed Guest',
+            'living_area_id' => $managedArea->id,
+            'status' => Booking::STATUS_ACTIVE,
+        ]);
+        $this->assertDatabaseHas('bookings', [
+            'booking_group' => 'poobah-edit-group',
+            'status' => Booking::STATUS_CANCELLED,
+        ]);
+    }
+
+    public function test_poobah_can_cancel_a_confirmed_stay_for_managed_areas(): void
+    {
+        $poobah = User::factory()->create();
+        $guest = User::factory()->create();
+        $managedArea = LivingArea::query()->firstOrFail();
+        $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
+
+        Booking::query()->create([
+            'booking_group' => 'poobah-cancel-group',
+            'living_area_id' => $managedArea->id,
+            'created_by' => $guest->id,
+            'approved_by' => $poobah->id,
+            'guest_name' => 'Managed Cancel Guest',
+            'start_date' => '2027-02-05',
+            'end_date' => '2027-02-06',
+            'status' => Booking::STATUS_ACTIVE,
+            'amount_cents' => 2000,
+            'payment_status' => Booking::PAYMENT_UNPAID,
+            'payment_method' => 'pay_later',
+            'approved_at' => now(),
+        ]);
+
+        $this->actingAs($poobah)
+            ->patch(route('admin.bookings.cancel', 'poobah-cancel-group'))
+            ->assertRedirect(route('admin.index', absolute: false));
+
+        $this->assertDatabaseHas('bookings', [
+            'booking_group' => 'poobah-cancel-group',
+            'status' => Booking::STATUS_CANCELLED,
+            'cancelled_by' => $poobah->id,
+        ]);
+    }
 }

@@ -30,6 +30,7 @@ class DashboardController extends Controller
 
         $bookings = Booking::query()
             ->with('livingArea')
+            ->whereIn('status', [Booking::STATUS_DRAFT, Booking::STATUS_ACTIVE])
             ->whereDate('end_date', '>=', $gridStart->toDateString())
             ->whereDate('start_date', '<=', $gridEnd->toDateString())
             ->orderBy('start_date')
