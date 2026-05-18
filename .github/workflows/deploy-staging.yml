@@ -33,10 +33,23 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Prepare deploy directory
+      - name: Resolve staging paths
         run: |
-          mkdir deploy
-          rsync -av ./ deploy/ \
+          STAGING_WEB_ROOT="${{ secrets.CPANEL_STAGING_PATH }}"
+          STAGING_WEB_ROOT="${STAGING_WEB_ROOT%/}"
+          STAGING_APP_ROOT="$STAGING_WEB_ROOT"
+
+          if [[ "$STAGING_WEB_ROOT" == */public ]]; then
+            STAGING_APP_ROOT="${STAGING_WEB_ROOT%/public}"
+          fi
+
+          echo "STAGING_WEB_ROOT=$STAGING_WEB_ROOT" >> "$GITHUB_ENV"
+          echo "STAGING_APP_ROOT=$STAGING_APP_ROOT" >> "$GITHUB_ENV"
+
+      - name: Prepare staging app payload
+        run: |
+          mkdir deploy-app
+          rsync -av ./ deploy-app/ \
             --exclude='.env' \
             --exclude='.git/' \
             --exclude='.github/' \
@@ -47,15 +60,15 @@ jobs:
             --exclude='storage/framework/views/' \
             --exclude='database/database.sqlite'
 
-      - name: Upload to cPanel staging via FTP
+      - name: Upload app to cPanel staging via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.CPANEL_FTP_HOST }}
           username: ${{ secrets.CPANEL_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_FTP_PASSWORD }}
           protocol: ftps
-          server-dir: ${{ secrets.CPANEL_STAGING_PATH }}
-          local-dir: ./deploy/
+          server-dir: ${{ env.STAGING_APP_ROOT }}/
+          local-dir: ./deploy-app/
           exclude: |
             **/.env
             **/.git*

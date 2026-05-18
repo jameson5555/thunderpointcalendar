@@ -36,10 +36,22 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Prepare deploy directory
+      - name: Resolve production paths
         run: |
-          mkdir deploy
-          rsync -av ./ deploy/ \
+          PRODUCTION_APP_ROOT="${{ secrets.CPANEL_PRODUCTION_PATH }}"
+          PRODUCTION_APP_ROOT="${PRODUCTION_APP_ROOT%/}"
+          CPANEL_HOME="$(dirname "$PRODUCTION_APP_ROOT")"
+          PRODUCTION_WEB_ROOT="$CPANEL_HOME/public_html"
+          PRODUCTION_APP_NAME="$(basename "$PRODUCTION_APP_ROOT")"
+
+          echo "PRODUCTION_APP_ROOT=$PRODUCTION_APP_ROOT" >> "$GITHUB_ENV"
+          echo "PRODUCTION_WEB_ROOT=$PRODUCTION_WEB_ROOT" >> "$GITHUB_ENV"
+          echo "PRODUCTION_APP_NAME=$PRODUCTION_APP_NAME" >> "$GITHUB_ENV"
+
+      - name: Prepare production app payload
+        run: |
+          mkdir deploy-app
+          rsync -av ./ deploy-app/ \
             --exclude='.env' \
             --exclude='.git/' \
             --exclude='.github/' \
@@ -50,15 +62,38 @@ jobs:
             --exclude='storage/framework/views/' \
             --exclude='database/database.sqlite'
 
-      - name: Upload to cPanel production via FTP
+      - name: Prepare production web payload
+        run: |
+          mkdir deploy-public
+          rsync -av public/ deploy-public/
+
+          perl -0pi -e "s#__DIR__\.'/\.\./storage/framework/maintenance\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/storage/framework/maintenance.php'#g; s#__DIR__\.'/\.\./vendor/autoload\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/vendor/autoload.php'#g; s#__DIR__\.'/\.\./bootstrap/app\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/bootstrap/app.php'#g" deploy-public/index.php
+
+      - name: Upload app to cPanel production via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.CPANEL_FTP_HOST }}
           username: ${{ secrets.CPANEL_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_FTP_PASSWORD }}
           protocol: ftps
-          server-dir: ${{ secrets.CPANEL_PRODUCTION_PATH }}
-          local-dir: ./deploy/
+          server-dir: ${{ env.PRODUCTION_APP_ROOT }}/
+          local-dir: ./deploy-app/
+          exclude: |
+            **/.env
+            **/.git*
+            **/.github/**
+            **/node_modules/**
+            **/tests/**
+
+      - name: Upload public files to cPanel production web root via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_HOST }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          protocol: ftps
+          server-dir: ${{ env.PRODUCTION_WEB_ROOT }}/
+          local-dir: ./deploy-public/
           exclude: |
             **/.env
             **/.git*
