@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--tp-paper: #f7f1df;
+		--tp-ink: #3d3427;
+		--tp-bark: #4a3422;
+		--tp-pine: #315b3f;
+		--tp-lake: #2f6f87;
+		--tp-sand: #d6b787;
+		--tp-ember: #c66a2b;
+	}
+
+	body {
+		font-family: 'Mulish', sans-serif;
+	}
+
+	.font-display {
+		font-family: 'Alegreya', serif;
+		font-weight: 700;
+	}
+}
+
+@layer components {
+	.tp-chip {
+		@apply inline-flex items-center rounded-full border border-[rgba(61,52,39,0.12)] bg-white/70 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(61,52,39,0.74)];
+	}
+}
