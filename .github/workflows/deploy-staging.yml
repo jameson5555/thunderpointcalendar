@@ -54,7 +54,7 @@ jobs:
           username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
           protocol: ftp
-          server-dir: /
+          server-dir: ./
           local-dir: ./deploy-app/
           exclude: |
             **/.env
