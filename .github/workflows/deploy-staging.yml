@@ -94,6 +94,8 @@ jobs:
           mkdir deploy-public
           rsync -av public/ deploy-public/
 
+          printf 'staging-public-ok\ncommit=%s\n' "$GITHUB_SHA" > deploy-public/staging-public-check.txt
+
           perl -0pi -e "s#__DIR__\.'/\.\./storage/framework/maintenance\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/storage/framework/maintenance.php'#g; s#__DIR__\.'/\.\./vendor/autoload\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/vendor/autoload.php'#g; s#__DIR__\.'/\.\./bootstrap/app\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/bootstrap/app.php'#g" deploy-public/index.php
 
       - name: Upload app to cPanel staging via FTP
