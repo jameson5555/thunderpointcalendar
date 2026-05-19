@@ -64,8 +64,8 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.CPANEL_FTP_HOST }}
-          username: ${{ secrets.CPANEL_FTP_USERNAME }}
-          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
           protocol: ftps
           server-dir: ${{ env.STAGING_APP_ROOT }}/
           local-dir: ./deploy-app/
