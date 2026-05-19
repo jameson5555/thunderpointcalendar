@@ -33,19 +33,6 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Resolve staging paths
-        run: |
-          STAGING_WEB_ROOT="${{ secrets.CPANEL_STAGING_PATH }}"
-          STAGING_WEB_ROOT="${STAGING_WEB_ROOT%/}"
-          STAGING_APP_ROOT="$STAGING_WEB_ROOT"
-
-          if [[ "$STAGING_WEB_ROOT" == */public ]]; then
-            STAGING_APP_ROOT="${STAGING_WEB_ROOT%/public}"
-          fi
-
-          echo "STAGING_WEB_ROOT=$STAGING_WEB_ROOT" >> "$GITHUB_ENV"
-          echo "STAGING_APP_ROOT=$STAGING_APP_ROOT" >> "$GITHUB_ENV"
-
       - name: Prepare staging app payload
         run: |
           mkdir deploy-app
@@ -67,7 +54,7 @@ jobs:
           username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
           protocol: ftp
-          server-dir: ${{ env.STAGING_APP_ROOT }}/
+          server-dir: /
           local-dir: ./deploy-app/
           exclude: |
             **/.env
