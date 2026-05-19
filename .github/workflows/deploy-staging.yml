@@ -33,6 +33,13 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
+      - name: Verify staging FTP account
+        run: |
+          if [[ "${{ secrets.CPANEL_STAGING_FTP_USERNAME }}" != "stg@thunderpoint.com" ]]; then
+            echo "CPANEL_STAGING_FTP_USERNAME does not match the expected staging FTP account."
+            exit 1
+          fi
+
       - name: Prepare staging app payload
         run: |
           mkdir deploy-app
@@ -47,6 +54,8 @@ jobs:
             --exclude='storage/framework/views/' \
             --exclude='database/database.sqlite'
 
+          printf 'workflow=deploy-staging\ncommit=%s\n' "$GITHUB_SHA" > deploy-app/staging-deploy-marker.txt
+
       - name: Upload app to cPanel staging via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -56,6 +65,7 @@ jobs:
           protocol: ftp
           server-dir: ./
           local-dir: ./deploy-app/
+          log-level: verbose
           exclude: |
             **/.env
             **/.git*
