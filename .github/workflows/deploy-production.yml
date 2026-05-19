@@ -35,15 +35,34 @@ jobs:
 
       - name: Resolve production paths
         run: |
-          PRODUCTION_APP_ROOT="${{ secrets.CPANEL_PRODUCTION_PATH }}"
-          PRODUCTION_APP_ROOT="${PRODUCTION_APP_ROOT%/}"
-          CPANEL_HOME="$(dirname "$PRODUCTION_APP_ROOT")"
-          PRODUCTION_WEB_ROOT="$CPANEL_HOME/public_html"
-          PRODUCTION_APP_NAME="$(basename "$PRODUCTION_APP_ROOT")"
+          PRODUCTION_PATH_INPUT="${{ secrets.CPANEL_PRODUCTION_PATH }}"
 
-          echo "PRODUCTION_APP_ROOT=$PRODUCTION_APP_ROOT" >> "$GITHUB_ENV"
-          echo "PRODUCTION_WEB_ROOT=$PRODUCTION_WEB_ROOT" >> "$GITHUB_ENV"
+          if [[ -z "$PRODUCTION_PATH_INPUT" ]]; then
+            echo "CPANEL_PRODUCTION_PATH is not set."
+            exit 1
+          fi
+
+          PRODUCTION_PATH_INPUT="${PRODUCTION_PATH_INPUT%/}"
+
+          if [[ "$PRODUCTION_PATH_INPUT" == */public ]]; then
+            PRODUCTION_APP_NAME="$(basename "$(dirname "$PRODUCTION_PATH_INPUT")")"
+          else
+            PRODUCTION_APP_NAME="$(basename "$PRODUCTION_PATH_INPUT")"
+          fi
+
+          if [[ -z "$PRODUCTION_APP_NAME" || "$PRODUCTION_APP_NAME" == "public" || "$PRODUCTION_APP_NAME" == "." ]]; then
+            echo "Unable to resolve a valid production app directory from CPANEL_PRODUCTION_PATH=$PRODUCTION_PATH_INPUT"
+            exit 1
+          fi
+
+          PRODUCTION_APP_DIR="./$PRODUCTION_APP_NAME/"
+          PRODUCTION_WEB_DIR="./public_html/"
+
+          echo "PRODUCTION_APP_DIR=$PRODUCTION_APP_DIR" >> "$GITHUB_ENV"
+          echo "PRODUCTION_WEB_DIR=$PRODUCTION_WEB_DIR" >> "$GITHUB_ENV"
           echo "PRODUCTION_APP_NAME=$PRODUCTION_APP_NAME" >> "$GITHUB_ENV"
+          echo "Resolved production app dir: $PRODUCTION_APP_DIR"
+          echo "Resolved production web dir: $PRODUCTION_WEB_DIR"
 
       - name: Prepare production app payload
         run: |
@@ -73,8 +92,9 @@ jobs:
           username: ${{ secrets.CPANEL_PRODUCTION_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_PRODUCTION_FTP_PASSWORD }}
           protocol: ftps
-          server-dir: ${{ env.PRODUCTION_APP_ROOT }}/
+          server-dir: ${{ env.PRODUCTION_APP_DIR }}
           local-dir: ./deploy-app/
+          log-level: verbose
           exclude: |
             **/.env
             **/.git*
@@ -89,8 +109,9 @@ jobs:
           username: ${{ secrets.CPANEL_PRODUCTION_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_PRODUCTION_FTP_PASSWORD }}
           protocol: ftps
-          server-dir: ${{ env.PRODUCTION_WEB_ROOT }}/
+          server-dir: ${{ env.PRODUCTION_WEB_DIR }}
           local-dir: ./deploy-public/
+          log-level: verbose
           exclude: |
             **/.env
             **/.git*
