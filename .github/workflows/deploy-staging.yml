@@ -42,21 +42,36 @@ jobs:
 
       - name: Resolve staging paths
         run: |
-          STAGING_APP_ROOT="${{ secrets.CPANEL_STAGING_PATH }}"
+          STAGING_PATH_INPUT="${{ secrets.CPANEL_STAGING_PATH }}"
 
-          if [[ -z "$STAGING_APP_ROOT" ]]; then
+          if [[ -z "$STAGING_PATH_INPUT" ]]; then
             echo "CPANEL_STAGING_PATH is not set."
             exit 1
           fi
 
-          STAGING_APP_ROOT="${STAGING_APP_ROOT%/}"
-          STAGING_APP_NAME="$(basename "$STAGING_APP_ROOT")"
+          STAGING_PATH_INPUT="${STAGING_PATH_INPUT%/}"
+
+          if [[ "$STAGING_PATH_INPUT" == */public_html/*/public ]]; then
+            STAGING_APP_NAME="$(basename "$(dirname "$STAGING_PATH_INPUT")")"
+          elif [[ "$STAGING_PATH_INPUT" == */public ]]; then
+            STAGING_APP_NAME="$(basename "$(dirname "$STAGING_PATH_INPUT")")"
+          else
+            STAGING_APP_NAME="$(basename "$STAGING_PATH_INPUT")"
+          fi
+
+          if [[ -z "$STAGING_APP_NAME" || "$STAGING_APP_NAME" == "public" || "$STAGING_APP_NAME" == "." ]]; then
+            echo "Unable to resolve a valid staging app directory from CPANEL_STAGING_PATH=$STAGING_PATH_INPUT"
+            exit 1
+          fi
+
           STAGING_APP_DIR="./$STAGING_APP_NAME/"
           STAGING_WEB_DIR="./public_html/$STAGING_APP_NAME/public/"
 
           echo "STAGING_APP_NAME=$STAGING_APP_NAME" >> "$GITHUB_ENV"
           echo "STAGING_APP_DIR=$STAGING_APP_DIR" >> "$GITHUB_ENV"
           echo "STAGING_WEB_DIR=$STAGING_WEB_DIR" >> "$GITHUB_ENV"
+          echo "Resolved staging app dir: $STAGING_APP_DIR"
+          echo "Resolved staging web dir: $STAGING_WEB_DIR"
 
       - name: Prepare staging app payload
         run: |
