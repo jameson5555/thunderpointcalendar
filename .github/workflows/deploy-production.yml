@@ -78,10 +78,12 @@ jobs:
             --exclude='storage/framework/views/' \
             --exclude='database/database.sqlite'
 
-          # Optional: provide full production .env via CPANEL_PRODUCTION_ENV_B64 secret
+          # Optional: provide production .env via CPANEL_PRODUCTION_ENV_B64 secret
           if [[ -n "${{ secrets.CPANEL_PRODUCTION_ENV_B64 }}" ]]; then
-            echo "${{ secrets.CPANEL_PRODUCTION_ENV_B64 }}" | base64 --decode > deploy-app/.env
-            chmod 600 deploy-app/.env
+            mkdir deploy-env
+            echo "${{ secrets.CPANEL_PRODUCTION_ENV_B64 }}" | base64 --decode > deploy-env/.env
+            chmod 600 deploy-env/.env
+            echo "HAS_PRODUCTION_ENV=true" >> "$GITHUB_ENV"
           fi
 
       - name: Prepare production web payload
@@ -91,8 +93,7 @@ jobs:
 
           perl -0pi -e "s#__DIR__\.'/\.\./storage/framework/maintenance\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/storage/framework/maintenance.php'#g; s#__DIR__\.'/\.\./vendor/autoload\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/vendor/autoload.php'#g; s#__DIR__\.'/\.\./bootstrap/app\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/bootstrap/app.php'#g" deploy-public/index.php
 
-      - name: Upload app to cPanel production via FTP (preserve server .env)
-        if: ${{ secrets.CPANEL_PRODUCTION_ENV_B64 == '' }}
+      - name: Upload app to cPanel production via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.CPANEL_FTP_HOST }}
@@ -109,8 +110,8 @@ jobs:
             **/node_modules/**
             **/tests/**
 
-      - name: Upload app to cPanel production via FTP (including .env)
-        if: ${{ secrets.CPANEL_PRODUCTION_ENV_B64 != '' }}
+      - name: Upload .env to cPanel production via FTP
+        if: env.HAS_PRODUCTION_ENV == 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.CPANEL_FTP_HOST }}
@@ -118,13 +119,8 @@ jobs:
           password: ${{ secrets.CPANEL_PRODUCTION_FTP_PASSWORD }}
           protocol: ftps
           server-dir: ${{ env.PRODUCTION_APP_DIR }}
-          local-dir: ./deploy-app/
+          local-dir: ./deploy-env/
           log-level: verbose
-          exclude: |
-            **/.git*
-            **/.github/**
-            **/node_modules/**
-            **/tests/**
 
       - name: Upload public files to cPanel production web root via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
