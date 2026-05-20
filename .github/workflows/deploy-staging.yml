@@ -87,6 +87,12 @@ jobs:
             --exclude='storage/framework/views/' \
             --exclude='database/database.sqlite'
 
+          # Optional: provide full staging .env via CPANEL_STAGING_ENV_B64 secret
+          if [[ -n "${{ secrets.CPANEL_STAGING_ENV_B64 }}" ]]; then
+            echo "${{ secrets.CPANEL_STAGING_ENV_B64 }}" | base64 --decode > deploy-app/.env
+            chmod 600 deploy-app/.env
+          fi
+
           printf 'workflow=deploy-staging\ncommit=%s\n' "$GITHUB_SHA" > deploy-app/staging-deploy-marker.txt
 
       - name: Prepare staging web payload
@@ -109,7 +115,6 @@ jobs:
           local-dir: ./deploy-app/
           log-level: verbose
           exclude: |
-            **/.env
             **/.git*
             **/.github/**
             **/node_modules/**
