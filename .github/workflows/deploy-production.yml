@@ -91,7 +91,26 @@ jobs:
 
           perl -0pi -e "s#__DIR__\.'/\.\./storage/framework/maintenance\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/storage/framework/maintenance.php'#g; s#__DIR__\.'/\.\./vendor/autoload\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/vendor/autoload.php'#g; s#__DIR__\.'/\.\./bootstrap/app\.php'#__DIR__.'/../${{ env.PRODUCTION_APP_NAME }}/bootstrap/app.php'#g" deploy-public/index.php
 
-      - name: Upload app to cPanel production via FTP
+      - name: Upload app to cPanel production via FTP (preserve server .env)
+        if: ${{ secrets.CPANEL_PRODUCTION_ENV_B64 == '' }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_HOST }}
+          username: ${{ secrets.CPANEL_PRODUCTION_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_PRODUCTION_FTP_PASSWORD }}
+          protocol: ftps
+          server-dir: ${{ env.PRODUCTION_APP_DIR }}
+          local-dir: ./deploy-app/
+          log-level: verbose
+          exclude: |
+            **/.env
+            **/.git*
+            **/.github/**
+            **/node_modules/**
+            **/tests/**
+
+      - name: Upload app to cPanel production via FTP (including .env)
+        if: ${{ secrets.CPANEL_PRODUCTION_ENV_B64 != '' }}
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.CPANEL_FTP_HOST }}
