@@ -33,13 +33,6 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Verify staging FTP account
-        run: |
-          if [[ "${{ secrets.CPANEL_STAGING_FTP_USERNAME }}" != "stg@thunderpoint.com" ]]; then
-            echo "CPANEL_STAGING_FTP_USERNAME does not match the expected staging FTP account."
-            exit 1
-          fi
-
       - name: Resolve staging paths
         run: |
           STAGING_PATH_INPUT="${{ secrets.CPANEL_STAGING_PATH }}"
@@ -105,14 +98,10 @@ jobs:
             echo "HAS_STAGING_ENV=true" >> "$GITHUB_ENV"
           fi
 
-          printf 'workflow=deploy-staging\ncommit=%s\n' "$GITHUB_SHA" > deploy-app/staging-deploy-marker.txt
-
       - name: Prepare staging web payload
         run: |
           mkdir deploy-public
           rsync -av public/ deploy-public/
-
-          printf 'staging-public-ok\ncommit=%s\n' "$GITHUB_SHA" > deploy-public/staging-public-check.txt
 
           perl -0pi -e "s#__DIR__\.'/\.\./storage/framework/maintenance\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/storage/framework/maintenance.php'#g; s#__DIR__\.'/\.\./vendor/autoload\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/vendor/autoload.php'#g; s#__DIR__\.'/\.\./bootstrap/app\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/bootstrap/app.php'#g" deploy-public/index.php
 
@@ -125,7 +114,6 @@ jobs:
           protocol: ftp
           server-dir: ${{ env.STAGING_APP_DIR }}
           local-dir: ./deploy-app/
-          log-level: verbose
           exclude: |
             **/.env
             **/.git*
@@ -143,7 +131,6 @@ jobs:
           protocol: ftp
           server-dir: ${{ env.STAGING_APP_DIR }}
           local-dir: ./deploy-env/
-          log-level: verbose
 
       - name: Upload public files to cPanel staging web root via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -154,7 +141,6 @@ jobs:
           protocol: ftp
           server-dir: ${{ env.STAGING_WEB_DIR }}
           local-dir: ./deploy-public/
-          log-level: verbose
           exclude: |
             **/.env
             **/.git*

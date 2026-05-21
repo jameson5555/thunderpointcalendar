@@ -112,7 +112,6 @@ jobs:
           protocol: ftps
           server-dir: ${{ env.PRODUCTION_APP_DIR }}
           local-dir: ./deploy-app/
-          log-level: verbose
           exclude: |
             **/.env
             **/.git*
@@ -130,7 +129,6 @@ jobs:
           protocol: ftps
           server-dir: ${{ env.PRODUCTION_APP_DIR }}
           local-dir: ./deploy-env/
-          log-level: verbose
 
       - name: Upload public files to cPanel production web root via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -141,7 +139,6 @@ jobs:
           protocol: ftps
           server-dir: ${{ env.PRODUCTION_WEB_DIR }}
           local-dir: ./deploy-public/
-          log-level: verbose
           exclude: |
             **/.env
             **/.git*
