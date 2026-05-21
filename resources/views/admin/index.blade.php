@@ -283,8 +283,6 @@
                             <h3 class="font-display text-2xl text-[var(--tp-bark)]">{{ $area->name }}</h3>
                             <span class="inline-flex h-4 w-4 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                         </div>
-                        <p class="mt-3 text-sm leading-6 text-[var(--tp-muted)]">{{ $area->description() }}</p>
-
                         <form method="POST" action="{{ route('admin.living-areas.update', $area) }}" class="mt-5 space-y-4">
                             @csrf
                             @method('PATCH')
@@ -304,7 +302,7 @@
                                     <span class="tp-chip">Poobah: {{ $manager->name }}</span>
                                 @endforeach
                                 @if ($area->managers->isEmpty())
-                                    <span class="tp-chip">No poobah assigned yet</span>
+                                    <span class="tp-chip">No Poobah assigned yet</span>
                                 @endif
                             </div>
 
@@ -318,7 +316,7 @@
                     <section class="tp-surface p-5">
                         <div>
                             <p class="tp-meta">User roles</p>
-                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Assign poobahs by living area</h3>
+                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Assign Poobahs by living area</h3>
                         </div>
 
                         <div class="mt-6 space-y-5">
@@ -366,7 +364,7 @@
                         <li>Place confirmed stays directly when a manager is ready to skip the draft step.</li>
                         <li>Review every booking group with payment method and reference details.</li>
                         <li>Approve only the living areas you manage, or everything if you are site admin.</li>
-                        <li>{{ $isAdminView ? 'Assign poobah access, rename areas, and edit booking-form messages.' : 'Rename your living areas and tailor the booking message shown to users.' }}</li>
+                        <li>{{ $isAdminView ? 'Assign Poobah access, rename areas, and edit booking-form messages.' : 'Rename your living areas and tailor the booking message shown to users.' }}</li>
                     </ul>
                 </section>
 

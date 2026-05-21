@@ -3,8 +3,7 @@
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <div class="mb-6">
-        <h2 class="font-display text-3xl text-[var(--tp-bark)]">Welcome back</h2>
-        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Sign in to open the shared calendar.</p>
+        <h2 class="font-display text-3xl text-[var(--tp-bark)]">Sign in</h2>
     </div>
 
     <form method="POST" action="{{ route('login') }}">
@@ -49,9 +48,6 @@
             </x-primary-button>
         </div>
 
-        <p class="mt-6 text-sm leading-6 text-[var(--tp-muted)]">
-            Need access?
-            <a href="{{ route('register') }}" class="tp-link">Create an account</a>.
-        </p>
+        <a href="{{ route('register') }}" class="mt-6 inline-block text-sm tp-link">Register</a>
     </form>
 </x-guest-layout>

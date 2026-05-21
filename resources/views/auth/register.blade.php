@@ -1,7 +1,6 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h2 class="font-display text-3xl text-[var(--tp-bark)]">Request access</h2>
-        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Accounts are approved before calendar access is opened.</p>
+        <h2 class="font-display text-3xl text-[var(--tp-bark)]">Register</h2>
     </div>
 
     <form method="POST" action="{{ route('register') }}">

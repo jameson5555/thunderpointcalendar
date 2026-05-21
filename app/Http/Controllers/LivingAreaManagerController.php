@@ -24,6 +24,6 @@ class LivingAreaManagerController extends Controller
 
         return redirect()
             ->route('admin.index')
-            ->with('status', sprintf('%s is now %s for %s.', $user->name, $role === 'poobah' ? 'a poobah' : 'standard', $livingArea->name));
+            ->with('status', sprintf('%s is now %s for %s.', $user->name, $role === 'poobah' ? 'a Poobah' : 'standard', $livingArea->name));
     }
 }

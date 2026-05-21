@@ -14,37 +14,22 @@
     </head>
     <body class="bg-[var(--tp-paper)] font-sans antialiased text-[var(--tp-ink)]">
         <div class="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-            <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-                <div class="max-w-xl space-y-5">
+            <div class="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-center">
+                <div class="space-y-6">
                     <a href="{{ route('home') }}" class="inline-flex items-center gap-3 text-[var(--tp-ink)]">
                         <x-application-logo class="w-auto" />
                     </a>
-                    <div class="space-y-3">
-                        <p class="tp-meta text-[var(--tp-brass)]">Members only</p>
-                        <h1 class="font-display text-4xl leading-tight text-[var(--tp-bark)] sm:text-5xl">Sign in to the Thunderpoint calendar.</h1>
-                        <p class="max-w-lg text-base leading-7 text-[var(--tp-muted)] sm:text-lg">Private booking access for family stays across all four living areas.</p>
+                    <div class="space-y-2">
+                        <p class="tp-meta text-[var(--tp-lake)]">Thunderpoint Eastman</p>
+                        <h1 class="max-w-lg font-display text-4xl leading-tight text-[var(--tp-bark)] sm:text-5xl">Private calendar access.</h1>
                     </div>
+                    <x-thunderpoint-sign class="max-w-2xl" />
                 </div>
 
-                <div class="tp-surface w-full max-w-xl p-4 sm:p-6">
-                    <div class="mb-5 flex items-center justify-between gap-3 rounded-[1.25rem] border border-[var(--tp-border)] bg-[rgba(239,230,218,0.6)] px-5 py-4 text-[var(--tp-bark)]">
-                        <div>
-                            <p class="tp-meta text-[var(--tp-brass)]">Access</p>
-                            <p class="mt-1 font-display text-2xl">Approval required</p>
-                        </div>
-                        <span class="hidden tp-chip sm:inline-flex">Private</span>
-                    </div>
-
-                    <div class="w-full overflow-hidden rounded-[1.25rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.78)] px-6 py-5 sm:px-8 sm:py-6">
+                <div class="tp-surface w-full max-w-xl p-4 sm:p-6 lg:justify-self-end">
+                    <div class="w-full overflow-hidden rounded-[1.25rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(249,247,242,0.82)] px-6 py-5 sm:px-8 sm:py-6">
                         {{ $slot }}
                     </div>
-                </div>
-            </div>
-
-            <div class="mx-auto mt-8 flex max-w-6xl flex-col gap-3 border-t border-[var(--tp-border)] pt-5 text-sm text-[var(--tp-muted)] sm:flex-row sm:items-center sm:justify-between">
-                <p>Facebook remains available separately.</p>
-                <a href="{{ config('thunderpoint.facebook_url') }}" target="_blank" rel="noreferrer" class="tp-link w-fit">Visit Facebook</a>
-            </div>
                 </div>
             </div>
         </div>

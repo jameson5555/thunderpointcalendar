@@ -1,14 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <p class="tp-meta text-[var(--tp-brass)]">Calendar</p>
-                <h2 class="mt-2 font-display text-3xl leading-tight text-[var(--tp-bark)] sm:text-4xl">
-                    {{ $monthLabel }} at Thunderpoint
-                </h2>
-                <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--tp-muted)] sm:text-base">Shared month view across all four living areas.</p>
-            </div>
-
+        <div class="flex flex-wrap gap-2">
             <div class="flex flex-wrap gap-2">
                 @foreach ($livingAreas as $area)
                     <span class="tp-chip border-transparent" style="background-color: {{ $area['soft_color'] }}; color: {{ $area['deep_color'] }};">
@@ -19,7 +11,7 @@
         </div>
     </x-slot>
 
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-0 py-6 sm:px-6 lg:px-8">
         @php
             $monthDate = \Carbon\CarbonImmutable::createFromFormat('F Y', $monthLabel, config('app.timezone'));
             $previousMonth = $monthDate->subMonth()->format('Y-m');
@@ -51,65 +43,63 @@
 
             <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
                 <section class="space-y-6">
-                    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                        @foreach ($livingAreas as $area)
-                            <article class="tp-surface-subtle p-5">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div>
-                                        <p class="tp-meta">Living area</p>
-                                        <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">{{ $area->name }}</h3>
-                                    </div>
-                                    <span class="inline-flex h-4 w-4 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
-                                </div>
-                                <p class="mt-3 text-sm leading-6 text-[var(--tp-muted)]">{{ $area->description() }}</p>
-                                <div class="mt-5 flex gap-2 text-xs font-semibold uppercase tracking-[0.16em]">
-                                    <span class="rounded-full px-3 py-2" style="background-color: {{ $area->soft_color }}; color: {{ $area->deep_color }};">Active</span>
-                                    <span class="rounded-full border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.72)] px-3 py-2 text-[var(--tp-muted)]">Draft</span>
-                                </div>
-                            </article>
-                        @endforeach
-                    </div>
-
-                    <div class="tp-surface overflow-hidden">
+                    <div class="tp-surface overflow-hidden rounded-none sm:rounded-[1.5rem]">
                         <div class="flex flex-col gap-4 border-b border-[var(--tp-border)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                             <div>
-                                <h3 class="font-display text-2xl text-[var(--tp-bark)]">Month view</h3>
-                                <p class="mt-1 text-sm text-[var(--tp-muted)]">All current bookings appear here.</p>
+                                <p class="tp-meta">Calendar</p>
+                                <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)] sm:text-3xl">{{ $monthLabel }}</h3>
                             </div>
 
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('dashboard', ['month' => $previousMonth]) }}" class="tp-button-secondary px-4 py-2">Previous</a>
-                                <span class="tp-chip">{{ $monthLabel }}</span>
                                 <a href="{{ route('dashboard', ['month' => $nextMonth]) }}" class="tp-button-secondary px-4 py-2">Next</a>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-7 border-b border-[var(--tp-border)] bg-[rgba(239,230,218,0.68)] text-center text-xs font-semibold uppercase tracking-[0.18em] text-[var(--tp-muted)]">
-                            @foreach ($weekdays as $weekday)
-                                <div class="px-2 py-3">{{ $weekday }}</div>
-                            @endforeach
-                        </div>
+                        <div>
+                            <div>
+                                <div class="grid grid-cols-7 border-b border-[var(--tp-border)] bg-[rgba(220,236,241,0.68)] text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--tp-muted)] sm:text-xs sm:tracking-[0.18em]">
+                                    @foreach ($weekdays as $weekday)
+                                        <div class="px-1 py-2 sm:px-2 sm:py-3">{{ $weekday }}</div>
+                                    @endforeach
+                                </div>
 
-                        <div class="grid grid-cols-7">
-                            @foreach ($calendarDays as $day)
-                                <div class="min-h-32 border-b border-r border-[rgba(47,37,29,0.08)] px-3 py-3 align-top {{ $day['isCurrentMonth'] ? 'bg-[rgba(253,251,247,0.72)]' : 'bg-[rgba(239,230,218,0.38)] text-[rgba(47,37,29,0.42)]' }} {{ $day['isToday'] ? 'ring-2 ring-inset ring-[rgba(108,135,148,0.55)]' : '' }}">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="font-display text-xl {{ $day['isToday'] ? 'text-[var(--tp-brass)]' : 'text-[var(--tp-bark)]' }}">{{ $day['date']->day }}</span>
-                                        @if ($day['isToday'])
-                                            <span class="rounded-full bg-[var(--tp-bark)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tp-paper-soft)]">Today</span>
+                                @foreach ($calendarWeeks as $week)
+                                    @php
+                                        $weekRowHeight = count($week['segments']) > 0
+                                            ? 3.5 + ($week['laneCount'] * 1.8)
+                                            : 3.5;
+                                    @endphp
+
+                                    <div class="relative border-b border-[rgba(31,52,64,0.08)] last:border-b-0" style="min-height: {{ number_format($weekRowHeight, 2, '.', '') }}rem;">
+                                        <div class="grid h-full grid-cols-7">
+                                            @foreach ($week['days'] as $day)
+                                                <div class="h-full border-r border-[rgba(31,52,64,0.08)] px-1 py-2 align-top last:border-r-0 sm:px-3 sm:py-3 {{ $day['isCurrentMonth'] ? 'bg-[rgba(248,252,252,0.8)]' : 'bg-[rgba(220,236,241,0.34)] text-[rgba(31,52,64,0.42)]' }} {{ $day['isToday'] ? 'ring-2 ring-inset ring-[rgba(108,135,148,0.55)]' : '' }}">
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <span class="font-display text-base sm:text-xl {{ $day['isToday'] ? 'text-[var(--tp-brass)]' : 'text-[var(--tp-bark)]' }}">{{ $day['date']->day }}</span>
+                                                        @if ($day['isToday'])
+                                                            <span class="hidden rounded-full bg-[var(--tp-bark)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--tp-paper-soft)] sm:inline-flex">Today</span>
+                                                            <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--tp-bark)] sm:hidden"></span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        @if (count($week['segments']) > 0)
+                                            <div class="pointer-events-none absolute inset-x-0 bottom-1.5 px-1.5 sm:bottom-2 sm:px-2">
+                                                <div class="grid gap-1" style="grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat({{ $week['laneCount'] }}, minmax(1.5rem, auto));">
+                                                    @foreach ($week['segments'] as $segment)
+                                                        <div class="pointer-events-auto rounded-full {{ $segment['style'] }}" style="grid-column: {{ $segment['column_start'] }} / {{ $segment['column_end'] }}; grid-row: {{ $segment['lane'] }}; {{ $segment['inline_style'] }}" title="{{ $segment['title'] }}">
+                                                            {{ $segment['label'] }}
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
                                         @endif
                                     </div>
-                                    <div class="mt-3 space-y-2">
-                                        @forelse ($day['markers'] as $marker)
-                                            <div class="rounded-2xl px-3 py-2 text-xs font-semibold leading-5 {{ $marker['style'] }}" @if ($marker['inline_style']) style="{{ $marker['inline_style'] }}" @endif>
-                                                {{ $marker['label'] }}
-                                            </div>
-                                        @empty
-                                            <p class="text-xs leading-5 text-[rgba(47,37,29,0.44)]">Open</p>
-                                        @endforelse
-                                    </div>
-                                </div>
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
                     </div>
 
@@ -119,7 +109,6 @@
                                 <p class="tp-meta">Your bookings</p>
                                 <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Drafts and stays</h3>
                             </div>
-                            <span class="tp-chip">Payment can be updated later</span>
                         </div>
 
                         <div class="mt-6 space-y-4">
@@ -141,7 +130,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="min-w-56 space-y-2 rounded-[1rem] bg-[rgba(239,230,218,0.58)] p-4">
+                                        <div class="min-w-56 space-y-2 rounded-[1rem] bg-[rgba(220,236,241,0.58)] p-4">
                                             <div class="flex items-center justify-between gap-2">
                                                 <span class="tp-meta">Status</span>
                                                 <span class="rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] {{ $booking['status'] === 'active' ? 'bg-[var(--tp-pine)] text-white' : 'border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.72)] text-[var(--tp-muted)]' }}">{{ ucfirst($booking['status']) }}</span>
@@ -193,7 +182,6 @@
                     <section class="tp-surface p-6">
                         <p class="tp-meta">Request a stay</p>
                         <h3 class="mt-2 font-display text-3xl text-[var(--tp-bark)]">Create a draft booking</h3>
-                        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Choose the living areas and dates you want to hold.</p>
 
                         <form method="POST" action="{{ route('bookings.store') }}" class="mt-6 space-y-5">
                             @csrf
@@ -202,14 +190,13 @@
                                 <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--tp-muted)]">Living areas</legend>
                                 <div class="mt-3 space-y-3">
                                     @foreach ($livingAreas as $area)
-                                        <label class="flex items-start gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(253,251,247,0.76)] px-4 py-3 shadow-sm transition hover:border-[var(--tp-border-strong)]">
+                                        <label class="flex items-start gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(248,252,252,0.8)] px-4 py-3 shadow-sm transition hover:border-[var(--tp-border-strong)]">
                                             <input type="checkbox" name="living_area_ids[]" value="{{ $area->id }}" class="mt-1 h-4 w-4 rounded border-[var(--tp-border-strong)] text-[var(--tp-bark)] focus:ring-[rgba(108,135,148,0.35)]" @checked(collect(old('living_area_ids', []))->contains($area->id))>
                                             <span class="min-w-0 flex-1">
                                                 <span class="flex items-center gap-2 font-semibold text-[var(--tp-bark)]">
                                                     <span class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                                     {{ $area->name }}
                                                 </span>
-                                                <span class="mt-1 block text-sm leading-6 text-[var(--tp-muted)]">{{ $area->description() }}</span>
                                             </span>
                                         </label>
                                     @endforeach
@@ -238,10 +225,10 @@
                                 <textarea id="note" name="note" rows="4" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(253,251,247,0.9)] px-4 py-3 text-[var(--tp-bark)] shadow-sm placeholder:text-[var(--tp-muted)] focus:border-[var(--tp-bark)] focus:ring-[rgba(108,135,148,0.35)]" placeholder="Optional note">{{ old('note') }}</textarea>
                             </div>
 
-                            <div class="rounded-[1rem] bg-[rgba(239,230,218,0.58)] p-4 text-sm leading-6 text-[var(--tp-muted)]">
+                            <div class="rounded-[1rem] bg-[rgba(220,236,241,0.58)] p-4 text-sm leading-6 text-[var(--tp-muted)]">
                                 <p class="font-semibold text-[var(--tp-bark)]">Pricing</p>
                                 <ul class="mt-2 space-y-1">
-                                    <li>$10 per night if you are poobah for the living area you are booking.</li>
+                                    <li>$10 per night if you are the Poobah for the living area you are booking.</li>
                                     <li>$20 per night for standard bookings.</li>
                                     <li>$500 for booking all four living areas for a full 7-night week.</li>
                                 </ul>
@@ -265,15 +252,6 @@
 
                             <x-primary-button class="w-full justify-center">{{ __('Submit Booking') }}</x-primary-button>
                         </form>
-                    </section>
-
-                    <section class="tp-surface-subtle p-6">
-                        <p class="tp-meta">Current rules</p>
-                        <ul class="mt-4 space-y-3 text-sm leading-6 text-[var(--tp-muted)]">
-                            <li>Draft and active bookings both block overlapping date requests.</li>
-                            <li>Every booking request must include a guest name.</li>
-                            <li>Payment details can be added or updated later.</li>
-                        </ul>
                     </section>
                 </aside>
             </div>

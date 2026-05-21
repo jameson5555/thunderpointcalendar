@@ -17,7 +17,7 @@
             @include('layouts.navigation')
 
             @isset($header)
-                <header class="border-b border-[var(--tp-border)] bg-[rgba(250,247,241,0.78)] backdrop-blur">
+                <header class="relative z-10 border-b border-[var(--tp-border)] bg-[rgba(249,247,242,0.8)] backdrop-blur">
                     <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

@@ -2,7 +2,6 @@
     <div class="space-y-5">
         <div>
             <h2 class="font-display text-3xl text-[var(--tp-bark)]">Approval pending</h2>
-            <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Your account is waiting for approval.</p>
         </div>
 
         @if (session('status'))

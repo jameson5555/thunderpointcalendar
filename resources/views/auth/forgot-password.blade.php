@@ -1,7 +1,6 @@
 <x-guest-layout>
     <div class="mb-6">
         <h2 class="font-display text-3xl text-[var(--tp-bark)]">Reset password</h2>
-        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Enter your email and we will send a reset link.</p>
     </div>
 
     <!-- Session Status -->

@@ -52,12 +52,26 @@ class DashboardController extends Controller
                 'date' => $date,
                 'isCurrentMonth' => $date->month === $currentMonth->month,
                 'isToday' => $date->equalTo($today),
-                'markers' => $this->markersForDate($date, $bookings),
             ]);
         }
 
+        $calendarWeeks = $calendarDays
+            ->chunk(7)
+            ->values()
+            ->map(function (Collection $days) use ($bookings): array {
+                $weekStart = $days->first()['date'];
+                $weekEnd = $days->last()['date'];
+                $rangeLayout = $this->rangeLayoutForWeek($weekStart, $weekEnd, $bookings);
+
+                return [
+                    'days' => $days->values(),
+                    'segments' => $rangeLayout['segments'],
+                    'laneCount' => $rangeLayout['lane_count'],
+                ];
+            });
+
         return view('dashboard', [
-            'calendarDays' => $calendarDays,
+            'calendarWeeks' => $calendarWeeks,
             'livingAreas' => $livingAreas,
             'monthLabel' => $currentMonth->format('F Y'),
             'myBookings' => $myBookings,
@@ -66,46 +80,86 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function markersForDate(CarbonImmutable $date, Collection $bookings): array
+    private function rangeLayoutForWeek(CarbonImmutable $weekStart, CarbonImmutable $weekEnd, Collection $bookings): array
     {
-        $markers = $bookings
-            ->filter(function (Booking $booking) use ($date): bool {
-                return $booking->start_date->toDateString() <= $date->toDateString()
-                    && $booking->end_date->toDateString() >= $date->toDateString();
+        $lanes = [];
+
+        $segments = $bookings
+            ->filter(function (Booking $booking) use ($weekStart, $weekEnd): bool {
+                return $booking->start_date->toDateString() <= $weekEnd->toDateString()
+                    && $booking->end_date->toDateString() >= $weekStart->toDateString();
             })
-            ->sortBy(fn (Booking $booking) => $booking->livingArea?->display_order ?? 0)
+            ->sortBy(fn (Booking $booking) => sprintf(
+                '%s-%02d-%s',
+                $booking->start_date->toDateString(),
+                $booking->livingArea?->display_order ?? 0,
+                $booking->guest_name,
+            ))
             ->values()
-            ->map(function (Booking $booking): array {
+            ->map(function (Booking $booking) use ($weekStart, $weekEnd, &$lanes): array {
+                $segmentStart = $booking->start_date->greaterThan($weekStart) ? $booking->start_date : $weekStart;
+                $segmentEnd = $booking->end_date->lessThan($weekEnd) ? $booking->end_date : $weekEnd;
+                $columnStart = $weekStart->diffInDays($segmentStart) + 1;
+                $columnEnd = $weekStart->diffInDays($segmentEnd) + 2;
+                $lane = null;
+
+                foreach ($lanes as $index => $occupiedThrough) {
+                    if ($columnStart > $occupiedThrough) {
+                        $lane = $index;
+                        break;
+                    }
+                }
+
+                if ($lane === null) {
+                    $lane = count($lanes);
+                }
+
+                $lanes[$lane] = $columnEnd - 1;
+
                 $deepColor = $booking->livingArea?->deep_color ?? '#4a3422';
                 $softColor = $booking->livingArea?->soft_color ?? '#f7f1df';
+                $baseClasses = 'truncate px-3 py-1.5 text-[11px] font-semibold leading-4';
 
                 if ($booking->status === Booking::STATUS_ACTIVE) {
                     return [
-                        'label' => sprintf('%s: %s', $booking->livingArea?->name, $booking->guest_name),
-                        'style' => 'text-white',
+                        'label' => $booking->guest_name,
+                        'style' => $baseClasses.' text-white',
                         'inline_style' => sprintf('background-color: %s;', $deepColor),
+                        'column_start' => $columnStart,
+                        'column_end' => $columnEnd,
+                        'lane' => $lane + 1,
+                        'title' => sprintf(
+                            '%s: %s (%s to %s)',
+                            $booking->livingArea?->name,
+                            $booking->guest_name,
+                            $booking->start_date->format('M j'),
+                            $booking->end_date->format('M j'),
+                        ),
                     ];
                 }
 
                 return [
-                    'label' => sprintf('%s draft: %s', $booking->livingArea?->name, $booking->guest_name),
-                    'style' => 'border border-dashed',
+                    'label' => sprintf('%s - DRAFT', $booking->guest_name),
+                    'style' => $baseClasses.' border border-dashed',
                     'inline_style' => sprintf('border-color: %s; background-color: %s; color: %s;', $deepColor, $softColor, $deepColor),
+                    'column_start' => $columnStart,
+                    'column_end' => $columnEnd,
+                    'lane' => $lane + 1,
+                    'title' => sprintf(
+                        '%s draft: %s (%s to %s)',
+                        $booking->livingArea?->name,
+                        $booking->guest_name,
+                        $booking->start_date->format('M j'),
+                        $booking->end_date->format('M j'),
+                    ),
                 ];
             })
             ->all();
 
-        if (count($markers) > 3) {
-            $hiddenCount = count($markers) - 2;
-            $markers = array_slice($markers, 0, 2);
-            $markers[] = [
-                'label' => sprintf('+%d more', $hiddenCount),
-                'style' => 'border border-dashed border-[rgba(61,52,39,0.18)] bg-white/80 text-[rgba(61,52,39,0.72)]',
-                'inline_style' => '',
-            ];
-        }
-
-        return $markers;
+        return [
+            'segments' => $segments,
+            'lane_count' => max(1, count($lanes)),
+        ];
     }
 
     private function bookingGroupSummary(Collection $group): array

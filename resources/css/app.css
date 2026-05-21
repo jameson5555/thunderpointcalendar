@@ -4,21 +4,24 @@
 
 @layer base {
 	:root {
-		--tp-paper: #f4efe7;
-		--tp-paper-soft: #faf7f1;
-		--tp-surface: #fdfbf7;
-		--tp-surface-alt: #efe6da;
-		--tp-ink: #2f251d;
-		--tp-muted: #6e6257;
-		--tp-bark: #4b3528;
-		--tp-pine: #586d5b;
-		--tp-lake: #6c8794;
-		--tp-sand: #d4c1a1;
-		--tp-brass: #a7823d;
-		--tp-ember: #986146;
-		--tp-border: rgba(47, 37, 29, 0.12);
-		--tp-border-strong: rgba(47, 37, 29, 0.18);
-		--tp-shadow: 0 16px 40px rgba(47, 37, 29, 0.06);
+		--tp-paper: #edf5f6;
+		--tp-paper-soft: #f8fcfc;
+		--tp-surface: #f6fbfb;
+		--tp-surface-alt: #d8e7ea;
+		--tp-ink: #1f3440;
+		--tp-muted: #5b7280;
+		--tp-bark: #29586d;
+		--tp-bark-strong: #21485a;
+		--tp-pine: #4a6657;
+		--tp-lake: #6e93a8;
+		--tp-sky: #dcecf1;
+		--tp-sand: #d8c3a3;
+		--tp-brass: #b18a3c;
+		--tp-berry: #895052;
+		--tp-ember: #a46646;
+		--tp-border: rgba(31, 52, 64, 0.12);
+		--tp-border-strong: rgba(31, 52, 64, 0.18);
+		--tp-shadow: 0 18px 40px rgba(34, 73, 91, 0.08);
 	}
 
 	html {
@@ -28,8 +31,14 @@
 	body {
 		font-family: 'Mulish', sans-serif;
 		background:
-			radial-gradient(circle at top, rgba(167, 130, 61, 0.08), transparent 34%),
-			linear-gradient(180deg, #f7f3ec 0%, #f0e8dd 100%);
+			radial-gradient(circle at top left, rgba(216, 195, 163, 0.22), transparent 30%),
+			radial-gradient(circle at top right, rgba(110, 147, 168, 0.08), transparent 28%),
+			radial-gradient(circle at 50% 100%, rgba(177, 138, 60, 0.08), transparent 34%),
+			linear-gradient(180deg, #f7f1e8 0%, #f8f4ec 48%, #f5f6f1 100%);
+	}
+
+	[x-cloak] {
+		display: none !important;
 	}
 
 	.font-display {
@@ -41,13 +50,14 @@
 		background: rgba(108, 135, 148, 0.22);
 		color: var(--tp-ink);
 	}
+
 }
 
 @layer components {
 	.tp-chip {
 		@apply inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em];
 		border-color: var(--tp-border);
-		background: rgba(253, 251, 247, 0.88);
+		background: rgba(249, 247, 242, 0.88);
 		color: var(--tp-muted);
 	}
 
@@ -59,14 +69,14 @@
 	.tp-surface {
 		@apply rounded-[1.5rem] border;
 		border-color: var(--tp-border);
-		background: rgba(253, 251, 247, 0.9);
+		background: rgba(248, 252, 252, 0.9);
 		box-shadow: var(--tp-shadow);
 	}
 
 	.tp-surface-subtle {
 		@apply rounded-[1.25rem] border;
-		border-color: rgba(47, 37, 29, 0.08);
-		background: rgba(253, 251, 247, 0.7);
+		border-color: rgba(31, 52, 64, 0.08);
+		background: rgba(230, 241, 244, 0.72);
 	}
 
 	.tp-rule {
@@ -79,19 +89,19 @@
 	}
 
 	.tp-link:hover {
-		color: var(--tp-brass);
+		color: var(--tp-lake);
 	}
 
 	.tp-button-secondary {
 		@apply inline-flex items-center justify-center rounded-full border px-5 py-3 text-sm font-semibold transition;
 		border-color: var(--tp-border-strong);
-		background: rgba(253, 251, 247, 0.72);
+		background: rgba(248, 252, 252, 0.72);
 		color: var(--tp-bark);
 	}
 
 	.tp-button-secondary:hover {
-		border-color: rgba(167, 130, 61, 0.45);
-		color: var(--tp-brass);
+		border-color: rgba(110, 147, 168, 0.45);
+		color: var(--tp-lake);
 	}
 
 	.tp-button-ghost {
@@ -100,7 +110,8 @@
 	}
 
 	.tp-button-ghost:hover {
-		background: rgba(253, 251, 247, 0.72);
+		background: rgba(230, 241, 244, 0.72);
 		color: var(--tp-bark);
 	}
+
 }

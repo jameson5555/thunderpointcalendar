@@ -13,7 +13,7 @@ class RegistrationTest extends TestCase
     {
         $response = $this->get('/register');
 
-        $response->assertStatus(200);
+        $response->assertRedirect(route('home', ['auth' => 'register'], absolute: false));
     }
 
     public function test_new_users_can_register(): void

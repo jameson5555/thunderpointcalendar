@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="border-b border-[var(--tp-border)] bg-[rgba(250,247,241,0.82)] backdrop-blur">
+<nav x-data="{ open: false }" class="relative z-40 border-b border-[var(--tp-border)] bg-[rgba(244,248,247,0.84)] backdrop-blur">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex min-h-20 justify-between gap-4 py-4">
             <div class="flex min-w-0 items-center gap-6">
@@ -28,8 +28,8 @@
 
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center gap-3 rounded-full border border-[var(--tp-border)] bg-[rgba(253,251,247,0.82)] px-3 py-2 text-sm font-semibold text-[var(--tp-bark)] shadow-sm transition hover:border-[var(--tp-border-strong)] focus:outline-none focus:ring-2 focus:ring-[rgba(108,135,148,0.3)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(212,193,161,0.48)] font-display text-lg text-[var(--tp-bark)]">
+                        <button class="inline-flex items-center gap-3 rounded-full border border-[var(--tp-border)] bg-[rgba(249,247,242,0.86)] px-3 py-2 text-sm font-semibold text-[var(--tp-bark)] shadow-sm transition hover:border-[rgba(110,147,168,0.35)] focus:outline-none focus:ring-2 focus:ring-[rgba(110,147,168,0.3)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(110,147,168,0.2)] font-display text-lg text-[var(--tp-bark)]">
                                 {{ strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}
                             </div>
                             <div class="text-left">
