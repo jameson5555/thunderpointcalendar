@@ -13,46 +13,38 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-[var(--tp-paper)] font-sans antialiased text-[var(--tp-ink)]">
-        <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(49,91,63,0.12),transparent_30%),radial-gradient(circle_at_top_right,rgba(187,91,40,0.16),transparent_26%),linear-gradient(180deg,#f4edda_0%,#e7dcc2_100%)] px-4 py-8 sm:px-6 lg:px-8">
-            <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div class="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+            <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
                 <div class="max-w-xl space-y-5">
                     <a href="{{ route('home') }}" class="inline-flex items-center gap-3 text-[var(--tp-ink)]">
                         <x-application-logo class="w-auto" />
                     </a>
                     <div class="space-y-3">
-                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--tp-pine)]">Shared camp calendar</p>
-                        <h1 class="font-display text-4xl leading-tight text-[var(--tp-bark)] sm:text-5xl">Keep Thunderpoint easy to book, easy to trust, and easy to read.</h1>
-                        <p class="max-w-lg text-base leading-7 text-[rgba(61,52,39,0.78)] sm:text-lg">Every stay runs through one friendly calendar for the Boathouse, Jack's Part, Jann's Part, and Joyce's Part. Accounts are approved before access so the family schedule stays private.</p>
-                    </div>
-                    <div class="flex flex-wrap gap-3 text-sm text-[var(--tp-bark)]">
-                        <span class="tp-chip">Large-text, mobile-friendly layout</span>
-                        <span class="tp-chip">Draft and active bookings</span>
-                        <span class="tp-chip">Poobah and admin approval flow</span>
+                        <p class="tp-meta text-[var(--tp-brass)]">Members only</p>
+                        <h1 class="font-display text-4xl leading-tight text-[var(--tp-bark)] sm:text-5xl">Sign in to the Thunderpoint calendar.</h1>
+                        <p class="max-w-lg text-base leading-7 text-[var(--tp-muted)] sm:text-lg">Private booking access for family stays across all four living areas.</p>
                     </div>
                 </div>
 
-                <div class="w-full max-w-xl rounded-[2rem] border border-[rgba(61,52,39,0.12)] bg-[rgba(255,250,240,0.84)] p-4 shadow-[0_24px_80px_rgba(61,52,39,0.12)] backdrop-blur sm:p-6">
-                    <div class="mb-5 flex items-center justify-between gap-3 rounded-[1.5rem] bg-[var(--tp-lake)] px-5 py-4 text-[var(--tp-paper)]">
+                <div class="tp-surface w-full max-w-xl p-4 sm:p-6">
+                    <div class="mb-5 flex items-center justify-between gap-3 rounded-[1.25rem] border border-[var(--tp-border)] bg-[rgba(239,230,218,0.6)] px-5 py-4 text-[var(--tp-bark)]">
                         <div>
-                            <p class="text-xs uppercase tracking-[0.24em] text-[rgba(255,248,238,0.72)]">Members only</p>
-                            <p class="mt-1 font-display text-2xl">Sign in to view the calendar</p>
+                            <p class="tp-meta text-[var(--tp-brass)]">Access</p>
+                            <p class="mt-1 font-display text-2xl">Approval required</p>
                         </div>
-                        <span class="hidden rounded-full border border-[rgba(255,255,255,0.28)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] sm:inline-flex">Approval required</span>
+                        <span class="hidden tp-chip sm:inline-flex">Private</span>
                     </div>
 
-                    <div class="w-full overflow-hidden rounded-[1.5rem] bg-[rgba(255,255,255,0.8)] px-6 py-5 shadow-[inset_0_0_0_1px_rgba(61,52,39,0.08)] sm:px-8 sm:py-6">
+                    <div class="w-full overflow-hidden rounded-[1.25rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.78)] px-6 py-5 sm:px-8 sm:py-6">
                         {{ $slot }}
                     </div>
                 </div>
             </div>
 
-            <div class="mx-auto mt-8 max-w-6xl rounded-[1.75rem] border border-[rgba(61,52,39,0.1)] bg-[rgba(255,250,240,0.7)] p-5 shadow-[0_18px_60px_rgba(61,52,39,0.08)]">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--tp-pine)]">Stay connected</p>
-                        <p class="mt-2 max-w-2xl text-sm leading-6 text-[rgba(61,52,39,0.78)]">The calendar is the main event. Facebook stays secondary and outbound so booking stays fast and uncluttered.</p>
-                    </div>
-                    <a href="{{ config('thunderpoint.facebook_url') }}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-full border border-[rgba(61,52,39,0.16)] px-5 py-3 text-sm font-semibold text-[var(--tp-bark)] transition hover:border-[var(--tp-lake)] hover:text-[var(--tp-lake)]">Visit the Thunderpoint Facebook page</a>
+            <div class="mx-auto mt-8 flex max-w-6xl flex-col gap-3 border-t border-[var(--tp-border)] pt-5 text-sm text-[var(--tp-muted)] sm:flex-row sm:items-center sm:justify-between">
+                <p>Facebook remains available separately.</p>
+                <a href="{{ config('thunderpoint.facebook_url') }}" target="_blank" rel="noreferrer" class="tp-link w-fit">Visit Facebook</a>
+            </div>
                 </div>
             </div>
         </div>

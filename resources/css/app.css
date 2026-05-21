@@ -4,27 +4,103 @@
 
 @layer base {
 	:root {
-		--tp-paper: #f7f1df;
-		--tp-ink: #3d3427;
-		--tp-bark: #4a3422;
-		--tp-pine: #315b3f;
-		--tp-lake: #2f6f87;
-		--tp-sand: #d6b787;
-		--tp-ember: #c66a2b;
+		--tp-paper: #f4efe7;
+		--tp-paper-soft: #faf7f1;
+		--tp-surface: #fdfbf7;
+		--tp-surface-alt: #efe6da;
+		--tp-ink: #2f251d;
+		--tp-muted: #6e6257;
+		--tp-bark: #4b3528;
+		--tp-pine: #586d5b;
+		--tp-lake: #6c8794;
+		--tp-sand: #d4c1a1;
+		--tp-brass: #a7823d;
+		--tp-ember: #986146;
+		--tp-border: rgba(47, 37, 29, 0.12);
+		--tp-border-strong: rgba(47, 37, 29, 0.18);
+		--tp-shadow: 0 16px 40px rgba(47, 37, 29, 0.06);
+	}
+
+	html {
+		background: var(--tp-paper);
 	}
 
 	body {
 		font-family: 'Mulish', sans-serif;
+		background:
+			radial-gradient(circle at top, rgba(167, 130, 61, 0.08), transparent 34%),
+			linear-gradient(180deg, #f7f3ec 0%, #f0e8dd 100%);
 	}
 
 	.font-display {
 		font-family: 'Alegreya', serif;
-		font-weight: 700;
+		font-weight: 600;
+	}
+
+	::selection {
+		background: rgba(108, 135, 148, 0.22);
+		color: var(--tp-ink);
 	}
 }
 
 @layer components {
 	.tp-chip {
-		@apply inline-flex items-center rounded-full border border-[rgba(61,52,39,0.12)] bg-white/70 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(61,52,39,0.74)];
+		@apply inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em];
+		border-color: var(--tp-border);
+		background: rgba(253, 251, 247, 0.88);
+		color: var(--tp-muted);
+	}
+
+	.tp-meta {
+		@apply text-[11px] font-semibold uppercase tracking-[0.24em];
+		color: var(--tp-muted);
+	}
+
+	.tp-surface {
+		@apply rounded-[1.5rem] border;
+		border-color: var(--tp-border);
+		background: rgba(253, 251, 247, 0.9);
+		box-shadow: var(--tp-shadow);
+	}
+
+	.tp-surface-subtle {
+		@apply rounded-[1.25rem] border;
+		border-color: rgba(47, 37, 29, 0.08);
+		background: rgba(253, 251, 247, 0.7);
+	}
+
+	.tp-rule {
+		border-color: var(--tp-border);
+	}
+
+	.tp-link {
+		@apply font-semibold underline underline-offset-4 transition;
+		color: var(--tp-bark);
+	}
+
+	.tp-link:hover {
+		color: var(--tp-brass);
+	}
+
+	.tp-button-secondary {
+		@apply inline-flex items-center justify-center rounded-full border px-5 py-3 text-sm font-semibold transition;
+		border-color: var(--tp-border-strong);
+		background: rgba(253, 251, 247, 0.72);
+		color: var(--tp-bark);
+	}
+
+	.tp-button-secondary:hover {
+		border-color: rgba(167, 130, 61, 0.45);
+		color: var(--tp-brass);
+	}
+
+	.tp-button-ghost {
+		@apply inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition;
+		color: var(--tp-muted);
+	}
+
+	.tp-button-ghost:hover {
+		background: rgba(253, 251, 247, 0.72);
+		color: var(--tp-bark);
 	}
 }

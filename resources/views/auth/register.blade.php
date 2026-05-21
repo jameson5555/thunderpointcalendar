@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h2 class="font-display text-3xl text-[var(--tp-bark)]">Create your Thunderpoint account</h2>
-        <p class="mt-2 text-sm leading-6 text-[rgba(61,52,39,0.74)]">Accounts are approved before the calendar becomes visible. Once approved, you will be able to request dates and track your stays.</p>
+        <h2 class="font-display text-3xl text-[var(--tp-bark)]">Request access</h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Accounts are approved before calendar access is opened.</p>
     </div>
 
     <form method="POST" action="{{ route('register') }}">
@@ -45,7 +45,7 @@
         </div>
 
         <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <a class="text-sm font-semibold text-[var(--tp-lake)] underline underline-offset-4 transition hover:text-[var(--tp-bark)] focus:outline-none" href="{{ route('login') }}">
+            <a class="tp-link text-sm focus:outline-none" href="{{ route('login') }}">
                 {{ __('Already registered?') }}
             </a>
 

@@ -4,7 +4,7 @@
 
     <div class="mb-6">
         <h2 class="font-display text-3xl text-[var(--tp-bark)]">Welcome back</h2>
-        <p class="mt-2 text-sm leading-6 text-[rgba(61,52,39,0.74)]">Sign in to view shared bookings, draft your dates, and keep Thunderpoint coordinated.</p>
+        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Sign in to open the shared calendar.</p>
     </div>
 
     <form method="POST" action="{{ route('login') }}">
@@ -31,15 +31,15 @@
 
         <!-- Remember Me -->
         <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+            <label for="remember_me" class="inline-flex items-center gap-2 text-sm text-[var(--tp-muted)]">
+                <input id="remember_me" type="checkbox" class="rounded border-[var(--tp-border-strong)] text-[var(--tp-bark)] shadow-sm focus:ring-[rgba(108,135,148,0.35)]" name="remember">
+                <span>{{ __('Remember me') }}</span>
             </label>
         </div>
 
         <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             @if (Route::has('password.request'))
-                <a class="text-sm font-semibold text-[var(--tp-lake)] underline underline-offset-4 transition hover:text-[var(--tp-bark)] focus:outline-none" href="{{ route('password.request') }}">
+                <a class="tp-link text-sm focus:outline-none" href="{{ route('password.request') }}">
                     {{ __('Forgot your password?') }}
                 </a>
             @endif
@@ -49,9 +49,9 @@
             </x-primary-button>
         </div>
 
-        <p class="mt-6 text-sm leading-6 text-[rgba(61,52,39,0.72)]">
+        <p class="mt-6 text-sm leading-6 text-[var(--tp-muted)]">
             Need access?
-            <a href="{{ route('register') }}" class="font-semibold text-[var(--tp-lake)] underline underline-offset-4">Create an account and wait for approval</a>.
+            <a href="{{ route('register') }}" class="tp-link">Create an account</a>.
         </p>
     </form>
 </x-guest-layout>
