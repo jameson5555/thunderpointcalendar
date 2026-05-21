@@ -87,6 +87,16 @@ jobs:
             --exclude='storage/framework/views/' \
             --exclude='database/database.sqlite'
 
+          # Recreate writable framework directories so FTP deploy uploads them.
+          mkdir -p \
+            deploy-app/storage/framework/cache/data \
+            deploy-app/storage/framework/sessions \
+            deploy-app/storage/framework/views
+          touch \
+            deploy-app/storage/framework/cache/data/.gitignore \
+            deploy-app/storage/framework/sessions/.gitignore \
+            deploy-app/storage/framework/views/.gitignore
+
           # Optional: provide staging .env via CPANEL_STAGING_ENV_B64 secret
           if [[ -n "${{ secrets.CPANEL_STAGING_ENV_B64 }}" ]]; then
             mkdir deploy-env
