@@ -6,8 +6,9 @@
 
         <title>{{ config('app.name', 'Thunderpoint') }}</title>
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=alegreya:500,700,800|mulish:400,500,600,700&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -20,12 +21,12 @@
             }
         @endphp
 
-        <div class="min-h-screen">
+        <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/thunderpoint-sunset.jpg') }}');">
             <main class="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-8 sm:px-6 lg:px-8">
                 <section class="grid w-full gap-6 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)] lg:items-stretch">
-                    <section id="access" x-data="{ panel: '{{ $selectedPanel }}' }" class="tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7">
+                    <section id="access" x-data="{ panel: '{{ $selectedPanel }}' }" class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7">
                         <div class="mb-6 flex justify-center lg:justify-start">
-                            <x-application-logo class="w-auto" />
+                            <div class="font-display text-[2.7rem] leading-none text-[var(--tp-bark)] sm:text-[3.2rem]">Thunderpoint</div>
                         </div>
 
                         @auth
@@ -36,7 +37,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                                    <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center rounded-full bg-[var(--tp-bark)] px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-paper-soft)] transition hover:bg-[var(--tp-bark-strong)]">Open calendar</a>
+                                    <a href="{{ route('dashboard') }}" class="tp-button-primary">Open calendar</a>
                                     @if (auth()->user()->isAdmin())
                                         <a href="{{ route('admin.index') }}" class="tp-button-secondary">Admin</a>
                                     @endif
@@ -48,7 +49,7 @@
                             </div>
                         @else
                             @if (session('status'))
-                                <div class="mb-4 rounded-[1rem] border border-[rgba(62,109,98,0.18)] bg-[rgba(62,109,98,0.08)] px-4 py-3 text-sm font-semibold text-[var(--tp-pine)]">
+                                <div class="mb-4 rounded-[1rem] border border-[rgba(26,140,145,0.26)] bg-[rgba(255,252,245,0.92)] px-4 py-3 text-sm font-semibold text-[var(--tp-pine)]">
                                     {{ session('status') }}
                                 </div>
                             @endif
@@ -90,7 +91,7 @@
                                     </div>
 
                                     <label for="home_remember_me" class="inline-flex items-center gap-2 text-sm text-[var(--tp-muted)]">
-                                        <input id="home_remember_me" type="checkbox" class="rounded border-[var(--tp-border-strong)] text-[var(--tp-bark)] shadow-sm focus:ring-[rgba(108,135,148,0.35)]" name="remember">
+                                        <input id="home_remember_me" type="checkbox" class="rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] shadow-sm focus:ring-[var(--tp-focus)]" name="remember">
                                         <span>{{ __('Remember me') }}</span>
                                     </label>
 

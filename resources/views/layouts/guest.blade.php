@@ -7,31 +7,27 @@
 
         <title>{{ config('app.name', 'Thunderpoint') }}</title>
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=alegreya:500,700,800|mulish:400,500,600,700&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-[var(--tp-paper)] font-sans antialiased text-[var(--tp-ink)]">
-        <div class="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-            <div class="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-center">
-                <div class="space-y-6">
-                    <a href="{{ route('home') }}" class="inline-flex items-center gap-3 text-[var(--tp-ink)]">
-                        <x-application-logo class="w-auto" />
-                    </a>
-                    <div class="space-y-2">
-                        <p class="tp-meta text-[var(--tp-lake)]">Thunderpoint Eastman</p>
-                        <h1 class="max-w-lg font-display text-4xl leading-tight text-[var(--tp-bark)] sm:text-5xl">Private calendar access.</h1>
-                    </div>
-                    <x-thunderpoint-sign class="max-w-2xl" />
-                </div>
+    <body class="font-sans antialiased text-[var(--tp-ink)]">
+        <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/thunderpoint-sunset.jpg') }}');">
+            <main class="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-8 sm:px-6 lg:px-8">
+                <section class="grid w-full gap-6 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)] lg:items-stretch">
+                    <section class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7">
+                        <div class="mb-6 flex justify-center lg:justify-start">
+                            <a href="{{ route('home') }}" class="font-display text-[2.7rem] leading-none text-[var(--tp-bark)] sm:text-[3.2rem]">Thunderpoint</a>
+                        </div>
 
-                <div class="tp-surface w-full max-w-xl p-4 sm:p-6 lg:justify-self-end">
-                    <div class="w-full overflow-hidden rounded-[1.25rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(249,247,242,0.82)] px-6 py-5 sm:px-8 sm:py-6">
                         {{ $slot }}
-                    </div>
-                </div>
-            </div>
+                    </section>
+
+                    <x-thunderpoint-sign class="min-h-[18rem] sm:min-h-[24rem] lg:min-h-full" />
+                </section>
+            </main>
         </div>
     </body>
 </html>

@@ -118,7 +118,7 @@ class DashboardController extends Controller
 
                 $deepColor = $booking->livingArea?->deep_color ?? '#4a3422';
                 $softColor = $booking->livingArea?->soft_color ?? '#f7f1df';
-                $baseClasses = 'truncate px-3 py-1.5 text-[11px] font-semibold leading-4';
+                $baseClasses = 'truncate px-2 py-1 text-[10px] font-semibold leading-4 sm:px-2.5 sm:text-[11px]';
 
                 if ($booking->status === Booking::STATUS_ACTIVE) {
                     return [

@@ -7,8 +7,9 @@
 
         <title>{{ config('app.name', 'Thunderpoint') }}</title>
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=alegreya:500,700,800|mulish:400,500,600,700&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -17,7 +18,7 @@
             @include('layouts.navigation')
 
             @isset($header)
-                <header class="relative z-10 border-b border-[var(--tp-border)] bg-[rgba(249,247,242,0.8)] backdrop-blur">
+                <header class="relative z-10 border-b border-[var(--tp-border)] bg-[rgba(245,237,212,0.96)]">
                     <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

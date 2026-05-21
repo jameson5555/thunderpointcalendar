@@ -31,7 +31,7 @@
         <!-- Remember Me -->
         <div class="block mt-4">
             <label for="remember_me" class="inline-flex items-center gap-2 text-sm text-[var(--tp-muted)]">
-                <input id="remember_me" type="checkbox" class="rounded border-[var(--tp-border-strong)] text-[var(--tp-bark)] shadow-sm focus:ring-[rgba(108,135,148,0.35)]" name="remember">
+                <input id="remember_me" type="checkbox" class="rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] shadow-sm focus:ring-[var(--tp-focus)]" name="remember">
                 <span>{{ __('Remember me') }}</span>
             </label>
         </div>
