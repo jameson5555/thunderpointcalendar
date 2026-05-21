@@ -2,7 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Mail\UserRegistrationPendingApprovalMail;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -18,6 +21,17 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        Mail::fake();
+
+        $approvedAdmin = User::factory()->create([
+            'site_role' => 'admin',
+            'email' => 'admin@example.com',
+        ]);
+        User::factory()->pendingApproval()->create([
+            'site_role' => 'admin',
+            'email' => 'pending-admin@example.com',
+        ]);
+
         $response = $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
@@ -36,5 +50,9 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'approved_at' => null,
         ]);
+
+        Mail::assertSent(UserRegistrationPendingApprovalMail::class, 1);
+        Mail::assertSent(UserRegistrationPendingApprovalMail::class, fn (UserRegistrationPendingApprovalMail $mail) => $mail->hasTo($approvedAdmin->email));
+        Mail::assertNotSent(UserRegistrationPendingApprovalMail::class, fn (UserRegistrationPendingApprovalMail $mail) => $mail->hasTo('pending-admin@example.com'));
     }
 }

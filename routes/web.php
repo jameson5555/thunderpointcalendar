@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AdminActiveBookingController;
 use App\Http\Controllers\AdminBookingCancelController;
 use App\Http\Controllers\AdminBookingApprovalController;
 use App\Http\Controllers\AdminBookingUpdateController;
+use App\Http\Controllers\AdminUserApprovalController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LivingAreaManagerController;
@@ -29,10 +29,10 @@ Route::get('/admin', AdminController::class)
     ->name('admin.index');
 
 Route::middleware(['auth', 'approved'])->group(function () {
-    Route::post('/admin/bookings/active', AdminActiveBookingController::class)->name('admin.bookings.active.store');
     Route::patch('/admin/bookings/{bookingGroup}', AdminBookingUpdateController::class)->name('admin.bookings.update');
     Route::patch('/admin/bookings/{bookingGroup}/cancel', AdminBookingCancelController::class)->name('admin.bookings.cancel');
     Route::patch('/admin/bookings/{bookingGroup}/approve', AdminBookingApprovalController::class)->name('admin.bookings.approve');
+    Route::patch('/admin/users/{user}/approve', AdminUserApprovalController::class)->name('admin.users.approve');
     Route::patch('/admin/living-areas/{livingArea}', LivingAreaSettingsController::class)->name('admin.living-areas.update');
     Route::patch('/admin/living-areas/{livingArea}/managers/{user}', LivingAreaManagerController::class)->name('admin.living-areas.managers.update');
 

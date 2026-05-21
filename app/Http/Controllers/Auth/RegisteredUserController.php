@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\UserRegistrationNotificationService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, UserRegistrationNotificationService $notifications): RedirectResponse
     {
         $request->validateWithBag('register', [
             'name' => ['required', 'string', 'max:255'],
@@ -42,6 +43,7 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+        $notifications->notifyAdminsOfPendingApproval($user);
 
         return redirect()->route('approval.pending')
             ->with('status', 'Your account has been created and is waiting for approval.');

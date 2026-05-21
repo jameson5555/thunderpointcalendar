@@ -7,9 +7,11 @@ use App\Http\Requests\BookingStoreRequest;
 use App\Models\BookingActivityLog;
 use App\Models\Booking;
 use App\Models\LivingArea;
+use App\Models\User;
 use App\Services\BookingGroupService;
 use App\Services\BookingNotificationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
@@ -29,27 +31,59 @@ class BookingController extends Controller
             ->orderBy('display_order')
             ->get();
 
-        $createdBookings = $this->bookingGroups->create($request->user(), $livingAreas, $validated, Booking::STATUS_DRAFT);
+        $user = $request->user();
+        $bookAsDraft = (bool) ($validated['book_as_draft'] ?? false);
+        $canCreateConfirmedBooking = $this->canCreateConfirmedBooking($user, $livingAreas);
+        $status = $canCreateConfirmedBooking && ! $bookAsDraft
+            ? Booking::STATUS_ACTIVE
+            : Booking::STATUS_DRAFT;
+
+        $createdBookings = $this->bookingGroups->create(
+            $user,
+            $livingAreas,
+            $validated,
+            $status,
+            $status === Booking::STATUS_ACTIVE ? $user : null,
+        );
 
         foreach ($createdBookings as $booking) {
             BookingActivityLog::create([
                 'booking_id' => $booking->id,
                 'booking_group' => $booking->booking_group,
-                'actor_id' => $request->user()->id,
-                'action' => 'draft_submitted',
-                'to_status' => Booking::STATUS_DRAFT,
+                'actor_id' => $user->id,
+                'action' => $status === Booking::STATUS_ACTIVE ? 'active_booking_created' : 'draft_submitted',
+                'to_status' => $status,
                 'details' => [
                     'living_area_id' => $booking->living_area_id,
                     'guest_name' => $booking->guest_name,
+                    'created_from_dashboard' => true,
                 ],
             ]);
         }
 
-        $this->notifications->notifyDraftSubmitted($createdBookings);
+        if ($status === Booking::STATUS_DRAFT) {
+            $this->notifications->notifyDraftSubmitted($createdBookings);
+        }
 
         return redirect()
             ->route('dashboard')
-            ->with('status', sprintf('Draft booking submitted for %s.', $livingAreas->pluck('name')->join(', ')));
+            ->with('status', sprintf(
+                $status === Booking::STATUS_ACTIVE ? 'Confirmed booking created for %s.' : 'Draft booking submitted for %s.',
+                $livingAreas->pluck('name')->join(', ')
+            ));
+    }
+
+    private function canCreateConfirmedBooking(User $user, Collection $livingAreas): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if (! $user->canAccessAdmin()) {
+            return false;
+        }
+
+        return $livingAreas->every(fn (LivingArea $livingArea) => $user->managesArea($livingArea->id));
     }
 
     public function updatePayment(BookingPaymentUpdateRequest $request, string $bookingGroup): RedirectResponse

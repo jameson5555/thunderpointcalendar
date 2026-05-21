@@ -71,6 +71,7 @@ class DashboardController extends Controller
             });
 
         return view('dashboard', [
+            'canCreateConfirmedBookings' => $request->user()->canAccessAdmin(),
             'calendarWeeks' => $calendarWeeks,
             'livingAreas' => $livingAreas,
             'monthLabel' => $currentMonth->format('F Y'),

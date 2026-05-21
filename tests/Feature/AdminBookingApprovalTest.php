@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\BookingApprovedMail;
+use App\Mail\DraftBookingSubmittedMail;
 use App\Models\BookingActivityLog;
 use App\Models\Booking;
 use App\Models\LivingArea;
@@ -125,7 +126,7 @@ class AdminBookingApprovalTest extends TestCase
         $admin = User::factory()->create(['site_role' => 'admin']);
         $areas = LivingArea::query()->take(2)->get();
 
-        $response = $this->actingAs($admin)->post(route('admin.bookings.active.store'), [
+        $response = $this->actingAs($admin)->post(route('bookings.store'), [
             'living_area_ids' => $areas->pluck('id')->all(),
             'guest_name' => 'Admin Direct Guest',
             'start_date' => '2026-12-27',
@@ -133,7 +134,7 @@ class AdminBookingApprovalTest extends TestCase
             'payment_method' => 'pay_later',
         ]);
 
-        $response->assertRedirect(route('admin.index', absolute: false));
+        $response->assertRedirect(route('dashboard', absolute: false));
 
         $this->assertSame(2, Booking::query()->where('guest_name', 'Admin Direct Guest')->count());
         $this->assertSame(1, Booking::query()->where('guest_name', 'Admin Direct Guest')->distinct('booking_group')->count('booking_group'));
@@ -143,6 +144,37 @@ class AdminBookingApprovalTest extends TestCase
             'approved_by' => $admin->id,
         ]);
         $this->assertSame(2, BookingActivityLog::query()->where('action', 'active_booking_created')->where('actor_id', $admin->id)->count());
+    }
+
+    public function test_admin_can_create_a_draft_booking_from_the_dashboard_form(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create([
+            'site_role' => 'admin',
+            'email' => 'admin@thunderpoint.test',
+        ]);
+        $areas = LivingArea::query()->take(2)->get();
+
+        $response = $this->actingAs($admin)->post(route('bookings.store'), [
+            'living_area_ids' => $areas->pluck('id')->all(),
+            'guest_name' => 'Admin Draft Guest',
+            'start_date' => '2026-12-29',
+            'end_date' => '2026-12-30',
+            'payment_method' => 'pay_later',
+            'book_as_draft' => '1',
+        ]);
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertDatabaseHas('bookings', [
+            'guest_name' => 'Admin Draft Guest',
+            'status' => Booking::STATUS_DRAFT,
+            'approved_by' => null,
+        ]);
+        $this->assertSame(2, BookingActivityLog::query()->where('action', 'draft_submitted')->where('actor_id', $admin->id)->count());
+        Mail::assertSent(DraftBookingSubmittedMail::class, fn (DraftBookingSubmittedMail $mail) => $mail->hasTo($admin->email));
+        $this->assertSame(1, NotificationLog::query()->where('notification_type', 'draft_submitted')->count());
     }
 
     public function test_admin_can_update_a_confirmed_booking_group(): void

@@ -23,6 +23,7 @@ class BookingStoreRequest extends FormRequest
             'note' => ['nullable', 'string', 'max:2000'],
             'payment_method' => ['nullable', Rule::in(array_keys(config('thunderpoint.payment_methods')))],
             'payment_reference' => ['nullable', 'string', 'max:255'],
+            'book_as_draft' => ['nullable', 'boolean'],
         ];
     }
 }

@@ -48,8 +48,11 @@ class AdminController extends Controller
             'paymentMethods' => config('thunderpoint.payment_methods'),
             'recentActivity' => $this->recentActivity($accessibleAreaIds),
             'recentNotifications' => $this->recentNotifications($accessibleAreaIds),
+            'pendingUsers' => $user->isAdmin()
+                ? User::query()->whereNull('approved_at')->orderBy('created_at')->get()
+                : collect(),
             'users' => $user->isAdmin()
-                ? User::query()->with('managedAreas')->orderBy('name')->get()
+                ? User::query()->whereNotNull('approved_at')->with('managedAreas')->orderBy('name')->get()
                 : collect(),
         ]);
     }

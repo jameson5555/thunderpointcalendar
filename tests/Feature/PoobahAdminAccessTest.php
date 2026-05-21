@@ -132,7 +132,7 @@ class PoobahAdminAccessTest extends TestCase
         $managedArea = LivingArea::query()->firstOrFail();
         $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
 
-        $response = $this->actingAs($poobah)->post(route('admin.bookings.active.store'), [
+        $response = $this->actingAs($poobah)->post(route('bookings.store'), [
             'living_area_ids' => [$managedArea->id],
             'guest_name' => 'Managed Active Guest',
             'start_date' => '2026-12-10',
@@ -141,7 +141,7 @@ class PoobahAdminAccessTest extends TestCase
             'payment_method' => 'pay_later',
         ]);
 
-        $response->assertRedirect(route('admin.index', absolute: false));
+        $response->assertRedirect(route('dashboard', absolute: false));
 
         $booking = Booking::query()->firstOrFail();
 
@@ -160,7 +160,38 @@ class PoobahAdminAccessTest extends TestCase
         ]);
     }
 
-    public function test_poobah_cannot_create_a_confirmed_stay_for_an_unmanaged_area(): void
+    public function test_poobah_can_optionally_create_a_draft_for_a_managed_area(): void
+    {
+        $poobah = User::factory()->create(['email' => 'poobah@thunderpoint.test']);
+        $managedArea = LivingArea::query()->firstOrFail();
+        $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
+
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $response = $this->actingAs($poobah)->post(route('bookings.store'), [
+            'living_area_ids' => [$managedArea->id],
+            'guest_name' => 'Managed Draft Guest',
+            'start_date' => '2026-12-13',
+            'end_date' => '2026-12-14',
+            'payment_method' => 'pay_later',
+            'book_as_draft' => '1',
+        ]);
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertDatabaseHas('bookings', [
+            'living_area_id' => $managedArea->id,
+            'guest_name' => 'Managed Draft Guest',
+            'status' => Booking::STATUS_DRAFT,
+            'approved_by' => null,
+        ]);
+        $this->assertDatabaseHas('booking_activity_logs', [
+            'action' => 'draft_submitted',
+            'actor_id' => $poobah->id,
+        ]);
+    }
+
+    public function test_poobah_submits_a_draft_for_an_unmanaged_area(): void
     {
         $poobah = User::factory()->create();
         $managedArea = LivingArea::query()->firstOrFail();
@@ -168,17 +199,20 @@ class PoobahAdminAccessTest extends TestCase
         $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
 
         $this->actingAs($poobah)
-            ->post(route('admin.bookings.active.store'), [
+            ->post(route('bookings.store'), [
                 'living_area_ids' => [$otherArea->id],
                 'guest_name' => 'Forbidden Active Guest',
                 'start_date' => '2026-12-15',
                 'end_date' => '2026-12-16',
                 'payment_method' => 'pay_later',
             ])
-            ->assertForbidden();
+            ->assertRedirect(route('dashboard', absolute: false));
 
-        $this->assertDatabaseMissing('bookings', [
+        $this->assertDatabaseHas('bookings', [
             'guest_name' => 'Forbidden Active Guest',
+            'living_area_id' => $otherArea->id,
+            'status' => Booking::STATUS_DRAFT,
+            'approved_by' => null,
         ]);
     }
 

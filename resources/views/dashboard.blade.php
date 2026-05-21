@@ -175,6 +175,10 @@
                     <section class="tp-surface p-6">
                         <h3 class="font-display text-3xl text-[var(--tp-bark)]">Book your dates!</h3>
 
+                        @if ($canCreateConfirmedBookings)
+                            <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Your bookings are confirmed by default here unless you mark them as draft.</p>
+                        @endif
+
                         <form method="POST" action="{{ route('bookings.store') }}" class="mt-6 space-y-5">
                             @csrf
 
@@ -235,7 +239,17 @@
                                 </select>
                             </div>
 
-                            <x-primary-button class="w-full justify-center">{{ __('Submit Booking') }}</x-primary-button>
+                            @if ($canCreateConfirmedBookings)
+                                <label class="flex items-start gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(253,251,247,0.76)] px-4 py-4 text-sm text-[var(--tp-bark)]">
+                                    <input type="checkbox" name="book_as_draft" value="1" class="mt-1 h-4 w-4 rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] focus:ring-[var(--tp-focus)]" @checked(old('book_as_draft'))>
+                                    <span>
+                                        <span class="block font-semibold">Book as draft</span>
+                                        <span class="mt-1 block leading-6 text-[var(--tp-muted)]">Use this when the booking should wait for approval instead of going live right away.</span>
+                                    </span>
+                                </label>
+                            @endif
+
+                            <x-primary-button class="w-full justify-center">{{ __($canCreateConfirmedBookings ? 'Save Booking' : 'Submit Booking') }}</x-primary-button>
                         </form>
                     </section>
                 </aside>

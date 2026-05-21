@@ -3,7 +3,7 @@
         <div>
             <p class="tp-meta text-[var(--tp-brass)]">Admin</p>
             <h2 class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $isAdminView ? 'Thunderpoint administration' : 'Poobah area management' }}</h2>
-            <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--tp-muted)]">{{ $isAdminView ? 'Approve bookings, manage areas, and assign roles.' : 'Review stays for your areas and update their settings.' }}</p>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--tp-muted)]">{{ $isAdminView ? 'Approve people and bookings, manage areas, and assign roles.' : 'Review stays for your areas and update their settings.' }}</p>
         </div>
     </x-slot>
 
@@ -36,73 +36,6 @@
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <section class="space-y-6">
-                @php
-                    $selectedAreaIds = collect(old('living_area_ids', []))->map(fn ($id) => (int) $id);
-                @endphp
-
-                <section class="tp-surface p-5">
-                    <div>
-                        <p class="tp-meta">Confirmed stays</p>
-                        <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Place a confirmed stay directly</h3>
-                        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Use this when a stay should go live immediately.</p>
-                    </div>
-
-                    <form method="POST" action="{{ route('admin.bookings.active.store') }}" class="mt-6 space-y-5">
-                        @csrf
-
-                        <div>
-                            <x-input-label for="active_guest_name" :value="__('Guest Name')" />
-                            <x-text-input id="active_guest_name" name="guest_name" type="text" class="mt-2 w-full" :value="old('guest_name')" />
-                        </div>
-
-                        <div>
-                            <x-input-label :value="__('Living Areas')" />
-                            <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                                @foreach ($livingAreas as $area)
-                                    <label class="flex items-center gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.8)] px-4 py-3 text-sm font-semibold text-[var(--tp-bark)]">
-                                        <input type="checkbox" name="living_area_ids[]" value="{{ $area->id }}" class="rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] focus:ring-[var(--tp-focus)]" @checked($selectedAreaIds->contains($area->id))>
-                                        <span class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
-                                        <span>{{ $area->name }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div class="grid gap-4 md:grid-cols-2">
-                            <div>
-                                <x-input-label for="active_start_date" :value="__('Start Date')" />
-                                <x-text-input id="active_start_date" name="start_date" type="date" class="mt-2 w-full" :value="old('start_date')" />
-                            </div>
-                            <div>
-                                <x-input-label for="active_end_date" :value="__('End Date')" />
-                                <x-text-input id="active_end_date" name="end_date" type="date" class="mt-2 w-full" :value="old('end_date')" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <x-input-label for="active_note" :value="__('Stay Note')" />
-                            <textarea id="active_note" name="note" rows="4" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">{{ old('note') }}</textarea>
-                        </div>
-
-                        <div class="grid gap-4 md:grid-cols-2">
-                            <div>
-                                <x-input-label for="active_payment_method" :value="__('Payment Method')" />
-                                <select id="active_payment_method" name="payment_method" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">
-                                    @foreach ($paymentMethods as $paymentValue => $paymentLabel)
-                                        <option value="{{ $paymentValue }}" @selected(old('payment_method', 'pay_later') === $paymentValue)>{{ $paymentLabel }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <x-input-label for="active_payment_reference" :value="__('Payment Reference')" />
-                                <x-text-input id="active_payment_reference" name="payment_reference" type="text" class="mt-2 w-full" :value="old('payment_reference')" />
-                            </div>
-                        </div>
-
-                        <x-primary-button class="justify-center">{{ __('Create Confirmed Stay') }}</x-primary-button>
-                    </form>
-                </section>
-
                 <div class="grid gap-4 md:grid-cols-2">
                     @forelse ($bookingGroups as $booking)
                         @php
@@ -316,6 +249,41 @@
                 @if ($isAdminView)
                     <section class="tp-surface p-5">
                         <div>
+                            <p class="tp-meta">User approvals</p>
+                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Pending account approvals</h3>
+                        </div>
+
+                        <div class="mt-6 space-y-4">
+                            @forelse ($pendingUsers as $pendingUser)
+                                <article class="tp-surface-subtle p-4">
+                                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <div class="flex flex-wrap gap-2">
+                                                <span class="tp-chip border-transparent bg-[var(--tp-orange)] text-white">Pending</span>
+                                            </div>
+                                            <h4 class="mt-4 font-display text-2xl text-[var(--tp-bark)]">{{ $pendingUser->name }}</h4>
+                                            <p class="mt-1 text-sm text-[var(--tp-muted)]">{{ $pendingUser->email }}</p>
+                                            <p class="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--tp-muted)]">Registered {{ optional($pendingUser->created_at)->format('M j, Y g:i a') }}</p>
+                                        </div>
+
+                                        <form method="POST" action="{{ route('admin.users.approve', $pendingUser) }}" class="sm:min-w-[12rem]">
+                                            @csrf
+                                            @method('PATCH')
+
+                                            <x-primary-button class="w-full justify-center">{{ __('Approve User') }}</x-primary-button>
+                                        </form>
+                                    </div>
+                                </article>
+                            @empty
+                                <div class="rounded-[1rem] border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.55)] px-5 py-6 text-sm leading-6 text-[var(--tp-muted)]">
+                                    No pending users right now.
+                                </div>
+                            @endforelse
+                        </div>
+                    </section>
+
+                    <section class="tp-surface p-5">
+                        <div>
                             <p class="tp-meta">User roles</p>
                             <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Assign Poobahs by living area</h3>
                         </div>
@@ -362,7 +330,9 @@
                 <section class="tp-surface-subtle p-6">
                     <p class="tp-meta">Live controls</p>
                     <ul class="mt-4 space-y-3 text-sm leading-6 text-[var(--tp-muted)]">
-                        <li>Place confirmed stays directly when a manager is ready to skip the draft step.</li>
+                        @if ($isAdminView)
+                            <li>Approve new accounts before they can sign in and access the calendar.</li>
+                        @endif
                         <li>Review every booking group with payment method and reference details.</li>
                         <li>Approve only the living areas you manage, or everything if you are site admin.</li>
                         <li>{{ $isAdminView ? 'Assign Poobah access, rename areas, and edit booking-form messages.' : 'Rename your living areas and tailor the booking message shown to users.' }}</li>
