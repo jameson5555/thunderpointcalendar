@@ -36,6 +36,12 @@ class DashboardController extends Controller
             ->orderBy('start_date')
             ->get();
 
+        $activeBookings = Booking::query()
+            ->where('status', Booking::STATUS_ACTIVE)
+            ->whereDate('end_date', '>=', $today->toDateString())
+            ->orderBy('start_date')
+            ->get();
+
         $myBookings = Booking::query()
             ->with('livingArea')
             ->where('created_by', $request->user()->id)
@@ -77,8 +83,25 @@ class DashboardController extends Controller
             'monthLabel' => $currentMonth->format('F Y'),
             'myBookings' => $myBookings,
             'paymentMethods' => config('thunderpoint.payment_methods'),
+            'unavailableDateRangesByArea' => $this->unavailableRangesByArea($activeBookings),
             'weekdays' => $weekdays,
         ]);
+    }
+
+    private function unavailableRangesByArea(Collection $bookings, ?string $exceptBookingGroup = null): array
+    {
+        return $bookings
+            ->filter(fn (Booking $booking) => $exceptBookingGroup === null || $booking->booking_group !== $exceptBookingGroup)
+            ->groupBy('living_area_id')
+            ->map(fn (Collection $areaBookings) => $areaBookings
+                ->sortBy('start_date')
+                ->map(fn (Booking $booking) => [
+                    'from' => $booking->start_date->toDateString(),
+                    'to' => $booking->end_date->toDateString(),
+                ])
+                ->values()
+                ->all())
+            ->all();
     }
 
     private function rangeLayoutForWeek(CarbonImmutable $weekStart, CarbonImmutable $weekEnd, Collection $bookings): array

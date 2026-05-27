@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\LivingArea;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -69,13 +70,24 @@ class BookingGroupService
         return Booking::PAYMENT_PENDING;
     }
 
-    private function ensureAreasAreAvailable(Collection $livingAreas, CarbonImmutable $startDate, CarbonImmutable $endDate): void
+    public function ensureAreasAreAvailable(
+        Collection $livingAreas,
+        CarbonInterface|string $startDate,
+        CarbonInterface|string $endDate,
+        ?string $exceptBookingGroup = null,
+    ): void
     {
-        $conflicts = Booking::query()
+        $conflictQuery = Booking::query()
             ->with('livingArea')
             ->blocking()
             ->whereIn('living_area_id', $livingAreas->pluck('id'))
-            ->overlapping($startDate, $endDate)
+            ->overlapping($startDate, $endDate);
+
+        if ($exceptBookingGroup !== null) {
+            $conflictQuery->where('booking_group', '!=', $exceptBookingGroup);
+        }
+
+        $conflicts = $conflictQuery
             ->get()
             ->pluck('livingArea.name')
             ->filter()

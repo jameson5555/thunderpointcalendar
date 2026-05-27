@@ -24,6 +24,18 @@ class BookingWorkflowTest extends TestCase
         $this->seed(LivingAreaSeeder::class);
     }
 
+    public function test_dashboard_shows_the_date_range_picker(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('data-date-range-picker', false)
+            ->assertSee('Choose arrival and departure')
+            ->assertDontSee('type="date"', false);
+    }
+
     public function test_approved_users_can_create_a_draft_booking(): void
     {
         $user = User::factory()->create();
@@ -47,6 +59,31 @@ class BookingWorkflowTest extends TestCase
             'amount_cents' => 6000,
             'payment_status' => Booking::PAYMENT_UNPAID,
         ]);
+    }
+
+    public function test_draft_bookings_can_overlap_other_draft_bookings(): void
+    {
+        $firstUser = User::factory()->create();
+        $secondUser = User::factory()->create();
+        $area = LivingArea::query()->firstOrFail();
+
+        $this->actingAs($firstUser)->post(route('bookings.store'), [
+            'living_area_ids' => [$area->id],
+            'guest_name' => 'First Draft Guest',
+            'start_date' => '2026-06-10',
+            'end_date' => '2026-06-12',
+            'payment_method' => 'pay_later',
+        ])->assertRedirect(route('dashboard', absolute: false));
+
+        $this->actingAs($secondUser)->post(route('bookings.store'), [
+            'living_area_ids' => [$area->id],
+            'guest_name' => 'Second Draft Guest',
+            'start_date' => '2026-06-11',
+            'end_date' => '2026-06-13',
+            'payment_method' => 'pay_later',
+        ])->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertSame(2, Booking::query()->where('living_area_id', $area->id)->where('status', Booking::STATUS_DRAFT)->count());
     }
 
     public function test_overlapping_blocking_bookings_are_rejected(): void

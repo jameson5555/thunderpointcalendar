@@ -198,17 +198,16 @@
                                 <x-text-input id="guest_name" name="guest_name" type="text" class="mt-2 w-full" :value="old('guest_name', auth()->user()->name)" required />
                             </div>
 
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <x-input-label for="start_date" :value="__('Start Date')" />
-                                    <x-text-input id="start_date" name="start_date" type="date" class="mt-2 w-full" :value="old('start_date')" required />
-                                </div>
-
-                                <div>
-                                    <x-input-label for="end_date" :value="__('End Date')" />
-                                    <x-text-input id="end_date" name="end_date" type="date" class="mt-2 w-full" :value="old('end_date')" required />
-                                </div>
-                            </div>
+                            <x-date-range-picker
+                                id="booking_dates"
+                                label="Stay Dates"
+                                start-name="start_date"
+                                end-name="end_date"
+                                :start-value="old('start_date')"
+                                :end-value="old('end_date')"
+                                :disabled-ranges-by-area="$unavailableDateRangesByArea"
+                                required
+                            />
 
                             <div>
                                 <x-input-label for="note" :value="__('Note')" />

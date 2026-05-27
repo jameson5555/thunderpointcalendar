@@ -72,7 +72,7 @@ class Booking extends Model
 
     public function scopeBlocking(Builder $query): Builder
     {
-        return $query->whereIn('status', [self::STATUS_DRAFT, self::STATUS_ACTIVE]);
+        return $query->where('status', self::STATUS_ACTIVE);
     }
 
     public function scopeOverlapping(Builder $query, CarbonInterface|string $startDate, CarbonInterface|string $endDate): Builder

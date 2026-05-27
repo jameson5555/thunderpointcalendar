@@ -4,14 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\BookingActivityLog;
 use App\Models\Booking;
+use App\Services\BookingGroupService;
 use App\Services\BookingNotificationService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AdminBookingApprovalController extends Controller
 {
-    public function __construct(private readonly BookingNotificationService $notifications)
+    public function __construct(
+        private readonly BookingNotificationService $notifications,
+        private readonly BookingGroupService $bookingGroups,
+    )
     {
     }
 
@@ -36,6 +41,12 @@ class AdminBookingApprovalController extends Controller
                 ->get();
 
             abort_if($bookings->isEmpty(), 403);
+
+            $this->bookingGroups->ensureAreasAreAvailable(
+                $bookings->pluck('livingArea')->filter(),
+                CarbonImmutable::parse($bookings->first()->start_date),
+                CarbonImmutable::parse($bookings->first()->end_date),
+            );
 
             $approvedAt = now();
 

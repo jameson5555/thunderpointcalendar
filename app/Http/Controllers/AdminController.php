@@ -31,14 +31,21 @@ class AdminController extends Controller
             ->with(['livingArea', 'creator'])
             ->orderByDesc('start_date');
 
+        $activeBookingsQuery = Booking::query()
+            ->where('status', Booking::STATUS_ACTIVE)
+            ->orderBy('start_date');
+
         if ($accessibleAreaIds !== null) {
             $bookingQuery->whereIn('living_area_id', $accessibleAreaIds);
+            $activeBookingsQuery->whereIn('living_area_id', $accessibleAreaIds);
         }
+
+        $activeBookings = $activeBookingsQuery->get();
 
         $bookingGroups = $bookingQuery
             ->get()
             ->groupBy(fn (Booking $booking) => $booking->booking_group ?: (string) $booking->id)
-            ->map(fn (Collection $group) => $this->bookingGroupSummary($group))
+            ->map(fn (Collection $group) => $this->bookingGroupSummary($group, $activeBookings))
             ->values();
 
         return view('admin.index', [
@@ -57,7 +64,7 @@ class AdminController extends Controller
         ]);
     }
 
-    private function bookingGroupSummary(Collection $group): array
+    private function bookingGroupSummary(Collection $group, Collection $activeBookings): array
     {
         /** @var Booking $first */
         $first = $group->first();
@@ -80,8 +87,28 @@ class AdminController extends Controller
             'approved_at' => $first->approved_at,
             'cancelled_at' => $group->pluck('cancelled_at')->filter()->sortDesc()->first(),
             'note' => $first->note,
+            'unavailable_ranges_by_area' => $this->unavailableRangesByArea(
+                $activeBookings,
+                $groupStatus === Booking::STATUS_ACTIVE ? ($first->booking_group ?: (string) $first->id) : null,
+            ),
             'history' => $this->groupHistory($first->booking_group ?: (string) $first->id),
         ];
+    }
+
+    private function unavailableRangesByArea(Collection $bookings, ?string $exceptBookingGroup = null): array
+    {
+        return $bookings
+            ->filter(fn (Booking $booking) => $exceptBookingGroup === null || $booking->booking_group !== $exceptBookingGroup)
+            ->groupBy('living_area_id')
+            ->map(fn (Collection $areaBookings) => $areaBookings
+                ->sortBy('start_date')
+                ->map(fn (Booking $booking) => [
+                    'from' => $booking->start_date->toDateString(),
+                    'to' => $booking->end_date->toDateString(),
+                ])
+                ->values()
+                ->all())
+            ->all();
     }
 
     private function groupHistory(string $bookingGroup): array

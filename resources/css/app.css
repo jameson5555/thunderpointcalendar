@@ -1,3 +1,5 @@
+@import 'flatpickr/dist/flatpickr.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -95,7 +97,7 @@
 	}
 
 	.tp-button-primary {
-		@apply inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition;
+		@apply inline-flex items-center justify-center rounded-[0.95rem] px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition;
 		background: var(--tp-brown);
 		color: var(--tp-paper-soft);
 	}
@@ -107,7 +109,7 @@
 	}
 
 	.tp-button-secondary {
-		@apply inline-flex items-center justify-center rounded-full border px-5 py-3 text-sm font-semibold transition;
+		@apply inline-flex items-center justify-center rounded-[0.95rem] border px-5 py-3 text-sm font-semibold transition;
 		border-color: var(--tp-brown);
 		background: var(--tp-brown);
 		color: var(--tp-paper-soft);
@@ -120,13 +122,52 @@
 	}
 
 	.tp-button-ghost {
-		@apply inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition;
+		@apply inline-flex items-center justify-center rounded-[0.95rem] px-4 py-2.5 text-sm font-semibold transition;
+		background: transparent;
 		color: var(--tp-muted);
 	}
 
 	.tp-button-ghost:hover {
 		background: rgba(247, 240, 215, 0.8);
 		color: var(--tp-orange);
+	}
+
+	.tp-date-range-input {
+		@apply rounded-[1rem] border px-4 py-3 pr-12 text-[var(--tp-bark)] shadow-sm transition;
+		border-color: var(--tp-border);
+		background: linear-gradient(180deg, rgba(255, 248, 235, 0.96) 0%, rgba(252, 245, 230, 0.92) 100%);
+		cursor: pointer;
+	}
+
+	.tp-date-range-input::placeholder {
+		color: var(--tp-muted);
+	}
+
+	.tp-date-range-input:hover {
+		border-color: var(--tp-border-strong);
+	}
+
+	.tp-date-range-input:focus {
+		border-color: var(--tp-ember);
+		outline: none;
+		box-shadow: 0 0 0 3px var(--tp-focus);
+	}
+
+	.tp-date-range-trigger {
+		@apply inline-flex h-9 w-9 items-center justify-center rounded-full border transition;
+		border-color: rgba(239, 177, 43, 0.38);
+		background: rgba(255, 252, 245, 0.94);
+		color: var(--tp-brass);
+	}
+
+	.tp-date-range-trigger:hover {
+		border-color: rgba(237, 112, 9, 0.42);
+		color: var(--tp-bark);
+	}
+
+	.tp-date-range-trigger:focus {
+		outline: none;
+		box-shadow: 0 0 0 3px var(--tp-focus);
 	}
 
 	@media (max-width: 639px) {
@@ -141,4 +182,170 @@
 		}
 	}
 
+}
+
+.flatpickr-calendar.tp-flatpickr {
+	width: min(42rem, calc(100vw - 2rem));
+	padding: 0.85rem 0.9rem 0.95rem;
+	border: 1px solid var(--tp-border-strong) !important;
+	border-radius: 1.5rem;
+	background: rgba(255, 252, 245, 0.98) !important;
+	box-shadow: 0 14px 32px rgba(95, 72, 56, 0.14) !important;
+	overflow: hidden;
+}
+
+.flatpickr-calendar.tp-flatpickr::before,
+.flatpickr-calendar.tp-flatpickr::after {
+	display: none;
+}
+
+.tp-flatpickr .flatpickr-months {
+	align-items: center;
+	margin-bottom: 0.55rem;
+	gap: 0.5rem;
+	padding: 0.1rem 0 0.55rem;
+	border-bottom: 1px solid rgba(95, 72, 56, 0.12);
+}
+
+.tp-flatpickr .flatpickr-month,
+.tp-flatpickr .flatpickr-weekdays,
+.tp-flatpickr .flatpickr-weekdaycontainer {
+	background: transparent;
+}
+
+.tp-flatpickr .flatpickr-current-month {
+	padding-top: 0.25rem;
+	line-height: 1.1;
+}
+
+.tp-flatpickr .flatpickr-current-month .cur-month,
+.tp-flatpickr .flatpickr-current-month .numInputWrapper {
+	font-family: 'Caprasimo', serif;
+	font-size: 1.12rem;
+	letter-spacing: 0.02em;
+	color: var(--tp-bark);
+}
+
+.tp-flatpickr .flatpickr-prev-month,
+.tp-flatpickr .flatpickr-next-month {
+	top: 0.35rem;
+	padding: 0.35rem;
+	border-radius: 9999px;
+	border: 1px solid rgba(95, 72, 56, 0.12);
+	background: rgba(255, 252, 245, 0.9);
+	box-shadow: none;
+	color: var(--tp-bark);
+}
+
+.tp-flatpickr .flatpickr-prev-month:hover,
+.tp-flatpickr .flatpickr-next-month:hover {
+	border-color: var(--tp-border-strong);
+	background: rgba(247, 240, 215, 0.75);
+	color: var(--tp-bark);
+}
+
+.tp-flatpickr .flatpickr-weekday {
+	color: var(--tp-muted);
+	font-size: 0.68rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	opacity: 0.9;
+}
+
+.tp-flatpickr .flatpickr-weekdays {
+	margin-bottom: 0.2rem;
+}
+
+.tp-flatpickr .flatpickr-days {
+	width: 100%;
+	padding: 0.15rem 0.1rem 0;
+}
+
+.tp-flatpickr .flatpickr-rContainer {
+	min-width: 100%;
+}
+
+.tp-flatpickr .flatpickr-day {
+	margin: 0.12rem 0;
+	border: 1px solid transparent;
+	/* border-radius: 0.75rem; */
+	color: var(--tp-bark) !important;
+	font-weight: 700;
+	transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+	line-height: 2.35rem;
+	height: 2.35rem;
+	max-width: 2.35rem;
+}
+
+.tp-flatpickr .flatpickr-day.today {
+	border-color: rgba(237, 112, 9, 0.28);
+	background: rgba(255, 246, 229, 0.72);
+	color: var(--tp-brass);
+}
+
+.tp-flatpickr .flatpickr-day.inRange {
+	border-color: rgba(26, 140, 145, 0.18);
+	background: rgba(26, 140, 145, 0.12);
+	box-shadow: none;
+	color: var(--tp-bark);
+}
+
+.tp-flatpickr .flatpickr-day.startRange,
+.tp-flatpickr .flatpickr-day.endRange,
+.tp-flatpickr .flatpickr-day.selected,
+.tp-flatpickr .flatpickr-day.startRange:hover,
+.tp-flatpickr .flatpickr-day.endRange:hover,
+.tp-flatpickr .flatpickr-day.selected:hover,
+.tp-flatpickr .flatpickr-day.startRange:focus,
+.tp-flatpickr .flatpickr-day.endRange:focus,
+.tp-flatpickr .flatpickr-day.selected:focus {
+	border-color: var(--tp-brown);
+	background: var(--tp-brown);
+	box-shadow: none;
+	color: var(--tp-paper-soft) !important;
+}
+
+.tp-flatpickr .flatpickr-day:hover,
+.tp-flatpickr .flatpickr-day:focus {
+	border-color: rgba(95, 72, 56, 0.18);
+	background: rgba(247, 240, 215, 0.9);
+}
+
+.tp-flatpickr .flatpickr-day.flatpickr-disabled,
+.tp-flatpickr .flatpickr-day.flatpickr-disabled:hover {
+	border-color: transparent;
+	background: transparent;
+	color: rgba(120, 97, 76, 0.5);
+}
+
+.tp-flatpickr .flatpickr-day.prevMonthDay,
+.tp-flatpickr .flatpickr-day.nextMonthDay {
+	background: transparent;
+	border-color: transparent;
+	color: rgba(120, 97, 76, 0.42);
+}
+
+.tp-flatpickr .flatpickr-day.prevMonthDay.flatpickr-disabled,
+.tp-flatpickr .flatpickr-day.prevMonthDay,
+.tp-flatpickr .flatpickr-day.nextMonthDay {
+	color: rgba(120, 97, 76, 0.42);
+}
+
+.tp-flatpickr .numInputWrapper:hover,
+.tp-flatpickr .flatpickr-current-month input.cur-year:hover {
+	background: transparent;
+}
+
+@media (max-width: 767px) {
+	.flatpickr-calendar.tp-flatpickr {
+		width: calc(100vw - 1.5rem);
+		padding: 0.75rem;
+	}
+
+	.tp-flatpickr .flatpickr-day {
+		line-height: 2.2rem;
+		height: 2.2rem;
+		max-width: 2.2rem;
+	}
 }

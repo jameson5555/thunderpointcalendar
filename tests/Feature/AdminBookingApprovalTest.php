@@ -57,6 +57,100 @@ class AdminBookingApprovalTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_approve_one_draft_even_when_another_draft_overlaps(): void
+    {
+        $admin = User::factory()->create(['site_role' => 'admin']);
+        $guest = User::factory()->create();
+        $area = LivingArea::query()->firstOrFail();
+
+        Booking::query()->create([
+            'booking_group' => 'existing-draft-group',
+            'living_area_id' => $area->id,
+            'created_by' => $guest->id,
+            'guest_name' => 'Existing Draft Guest',
+            'start_date' => '2026-10-02',
+            'end_date' => '2026-10-05',
+            'status' => Booking::STATUS_DRAFT,
+            'amount_cents' => 8000,
+            'payment_status' => Booking::PAYMENT_PENDING,
+            'payment_method' => 'paypal',
+        ]);
+
+        Booking::query()->create([
+            'booking_group' => 'approval-draft-group',
+            'living_area_id' => $area->id,
+            'created_by' => $guest->id,
+            'guest_name' => 'Approval Draft Guest',
+            'start_date' => '2026-10-03',
+            'end_date' => '2026-10-04',
+            'status' => Booking::STATUS_DRAFT,
+            'amount_cents' => 4000,
+            'payment_status' => Booking::PAYMENT_PENDING,
+            'payment_method' => 'paypal',
+        ]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.bookings.approve', 'approval-draft-group'))
+            ->assertRedirect(route('admin.index', absolute: false));
+
+        $this->assertDatabaseHas('bookings', [
+            'booking_group' => 'approval-draft-group',
+            'status' => Booking::STATUS_ACTIVE,
+            'approved_by' => $admin->id,
+        ]);
+        $this->assertDatabaseHas('bookings', [
+            'booking_group' => 'existing-draft-group',
+            'status' => Booking::STATUS_DRAFT,
+        ]);
+    }
+
+    public function test_admin_cannot_approve_a_draft_when_an_active_booking_overlaps(): void
+    {
+        $admin = User::factory()->create(['site_role' => 'admin']);
+        $guest = User::factory()->create();
+        $area = LivingArea::query()->firstOrFail();
+
+        Booking::query()->create([
+            'booking_group' => 'active-conflict-group',
+            'living_area_id' => $area->id,
+            'created_by' => $guest->id,
+            'approved_by' => $admin->id,
+            'guest_name' => 'Existing Active Guest',
+            'start_date' => '2026-10-03',
+            'end_date' => '2026-10-06',
+            'status' => Booking::STATUS_ACTIVE,
+            'amount_cents' => 8000,
+            'payment_status' => Booking::PAYMENT_SUBMITTED,
+            'payment_method' => 'paypal',
+            'approved_at' => now(),
+        ]);
+
+        Booking::query()->create([
+            'booking_group' => 'approval-conflict-group',
+            'living_area_id' => $area->id,
+            'created_by' => $guest->id,
+            'guest_name' => 'Conflicting Draft Guest',
+            'start_date' => '2026-10-04',
+            'end_date' => '2026-10-05',
+            'status' => Booking::STATUS_DRAFT,
+            'amount_cents' => 4000,
+            'payment_status' => Booking::PAYMENT_PENDING,
+            'payment_method' => 'paypal',
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.index'))
+            ->patch(route('admin.bookings.approve', 'approval-conflict-group'))
+            ->assertRedirect(route('admin.index', absolute: false))
+            ->assertSessionHasErrors('living_area_ids');
+
+        $this->assertDatabaseHas('bookings', [
+            'booking_group' => 'approval-conflict-group',
+            'status' => Booking::STATUS_DRAFT,
+            'approved_by' => null,
+        ]);
+    }
+
     public function test_non_admin_users_cannot_approve_bookings(): void
     {
         $user = User::factory()->create();
@@ -125,6 +219,19 @@ class AdminBookingApprovalTest extends TestCase
     {
         $admin = User::factory()->create(['site_role' => 'admin']);
         $areas = LivingArea::query()->take(2)->get();
+
+        Booking::query()->create([
+            'booking_group' => 'overlapping-draft-group',
+            'living_area_id' => $areas->first()->id,
+            'created_by' => $admin->id,
+            'guest_name' => 'Existing Draft Guest',
+            'start_date' => '2026-12-27',
+            'end_date' => '2026-12-29',
+            'status' => Booking::STATUS_DRAFT,
+            'amount_cents' => 6000,
+            'payment_status' => Booking::PAYMENT_PENDING,
+            'payment_method' => 'paypal',
+        ]);
 
         $response = $this->actingAs($admin)->post(route('bookings.store'), [
             'living_area_ids' => $areas->pluck('id')->all(),
@@ -199,6 +306,13 @@ class AdminBookingApprovalTest extends TestCase
                 'approved_at' => now(),
             ]);
         }
+
+        $this->actingAs($admin)
+            ->get(route('admin.index'))
+            ->assertOk()
+            ->assertSee('data-date-range-picker', false)
+            ->assertSee('Choose arrival and departure')
+            ->assertDontSee('type="date"', false);
 
         $response = $this->actingAs($admin)->patch(route('admin.bookings.update', 'editable-group'), [
             'living_area_ids' => $areas->pluck('id')->all(),

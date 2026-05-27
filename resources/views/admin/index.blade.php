@@ -100,16 +100,15 @@
                                             <x-text-input id="{{ 'edit_guest_name_'.$booking['group'] }}" name="guest_name" type="text" class="mt-2 w-full" :value="old('guest_name', $booking['guest_name'])" />
                                         </div>
 
-                                        <div class="grid gap-4 md:grid-cols-2">
-                                            <div>
-                                                <x-input-label :for="'edit_start_date_'.$booking['group']" :value="__('Start Date')" />
-                                                <x-text-input id="{{ 'edit_start_date_'.$booking['group'] }}" name="start_date" type="date" class="mt-2 w-full" :value="old('start_date', $booking['start_date']->toDateString())" />
-                                            </div>
-                                            <div>
-                                                <x-input-label :for="'edit_end_date_'.$booking['group']" :value="__('End Date')" />
-                                                <x-text-input id="{{ 'edit_end_date_'.$booking['group'] }}" name="end_date" type="date" class="mt-2 w-full" :value="old('end_date', $booking['end_date']->toDateString())" />
-                                            </div>
-                                        </div>
+                                        <x-date-range-picker
+                                            :id="'edit_dates_'.$booking['group']"
+                                            label="Stay Dates"
+                                            start-name="start_date"
+                                            end-name="end_date"
+                                            :start-value="old('start_date', $booking['start_date']->toDateString())"
+                                            :end-value="old('end_date', $booking['end_date']->toDateString())"
+                                            :disabled-ranges-by-area="$booking['unavailable_ranges_by_area']"
+                                        />
 
                                         <div>
                                             <x-input-label :value="__('Living Areas')" />
