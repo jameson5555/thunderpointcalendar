@@ -22,9 +22,11 @@
             </div>
 
             <div class="hidden md:flex md:items-center md:gap-4">
-                <span class="tp-chip text-[var(--tp-brass)]">
-                    {{ Auth::user()->isAdmin() ? 'Site Admin' : (Auth::user()->canAccessAdmin() ? 'Poobah' : 'Member') }}
-                </span>
+                @if (Auth::user()->canAccessAdmin())
+                    <span class="tp-chip text-[var(--tp-brass)]">
+                        {{ Auth::user()->isAdmin() ? 'Site Admin' : 'Poobah' }}
+                    </span>
+                @endif
 
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
