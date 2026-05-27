@@ -48,20 +48,12 @@
                                 </div>
                             </div>
                         @else
-                            @if (session('status'))
-                                <div class="mb-4 rounded-[1rem] border border-[rgba(26,140,145,0.26)] bg-[rgba(255,252,245,0.92)] px-4 py-3 text-sm font-semibold text-[var(--tp-pine)]">
-                                    {{ session('status') }}
-                                </div>
-                            @endif
-
                             <div class="grid grid-cols-2 gap-2 rounded-full bg-[rgba(226,208,181,0.4)] p-1">
                                 <button type="button" @click="panel = 'login'" :class="panel === 'login' ? 'bg-[rgba(255,252,247,0.96)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Sign in</button>
                                 <button type="button" @click="panel = 'register'" :class="panel === 'register' ? 'bg-[rgba(255,252,247,0.96)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Register</button>
                             </div>
 
                             <div x-show="panel === 'login'" x-cloak class="mt-6">
-                                <x-auth-session-status class="mb-4" :status="session('status')" />
-
                                 <div class="mb-6">
                                     <h2 class="font-display text-3xl text-[var(--tp-bark)]">Sign in</h2>
                                 </div>
@@ -160,5 +152,7 @@
                 </section>
             </main>
         </div>
+
+        <x-flash-toasts />
     </body>
 </html>

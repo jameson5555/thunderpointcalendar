@@ -52,6 +52,8 @@ class AdminUserApprovalTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.index'))
             ->assertOk()
+            ->assertSee('data-flash-toast-region', false)
+            ->assertSee('Needs Approval is now approved.')
             ->assertSee('No pending users right now.');
     }
 

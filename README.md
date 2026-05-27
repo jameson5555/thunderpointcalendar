@@ -29,6 +29,20 @@ In addition, [Laracasts](https://laracasts.com) contains thousands of video tuto
 
 You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
 
+## Local environment
+```
+php artisan serve --host=127.0.0.1 --port=8087
+```
+
+## Testing safely
+Use the default PHPUnit configuration when running tests:
+
+```bash
+php artisan test
+```
+
+Do not point tests at `database/database.sqlite`. That file is the live local app database from `.env`, and feature tests using `RefreshDatabase` will reset it. The test bootstrap now throws if a test run is configured against that live sqlite file.
+
 ## Agentic Development
 
 Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:

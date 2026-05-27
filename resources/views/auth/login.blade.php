@@ -1,7 +1,4 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
     <div class="mb-6">
         <h2 class="font-display text-3xl text-[var(--tp-bark)]">Sign in</h2>
     </div>

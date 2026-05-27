@@ -25,12 +25,6 @@
         @endphp
 
         <div class="space-y-6">
-            @if (session('status'))
-                <div class="rounded-[1rem] border border-[rgba(26,140,145,0.26)] bg-[rgba(255,252,245,0.92)] px-5 py-4 text-sm font-semibold text-[var(--tp-pine)]">
-                    {{ session('status') }}
-                </div>
-            @endif
-
             @if ($errors->any())
                 <div class="rounded-[1rem] border border-[rgba(221,79,22,0.22)] bg-[rgba(255,252,245,0.92)] px-5 py-4 text-sm text-[var(--tp-bark)]">
                     <p class="font-semibold">Your booking could not be saved.</p>

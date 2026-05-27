@@ -42,6 +42,13 @@ class RegistrationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect(route('approval.pending', absolute: false));
 
+        $this->get(route('approval.pending'))
+            ->assertOk()
+            ->assertSee('data-flash-toast-region', false)
+            ->assertSee('Your account has been created and is waiting for approval.')
+            ->assertSee('Return home')
+            ->assertDontSee('Back to sign in');
+
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
             'site_role' => 'standard',

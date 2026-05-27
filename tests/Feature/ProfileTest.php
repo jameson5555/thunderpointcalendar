@@ -25,16 +25,22 @@ class ProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this
-            ->actingAs($user)
-            ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => 'test@example.com',
-            ]);
+        $this->actingAs($user);
+
+        $response = $this->patch('/profile', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+        ]);
 
         $response
             ->assertSessionHasNoErrors()
             ->assertRedirect('/profile');
+
+        $this->get('/profile')
+            ->assertOk()
+            ->assertSee('data-flash-toast-region', false)
+            ->assertSee('Profile updated.')
+            ->assertDontSee('Saved.');
 
         $user->refresh();
 

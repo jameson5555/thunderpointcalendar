@@ -3,9 +3,6 @@
         <h2 class="font-display text-3xl text-[var(--tp-bark)]">Reset password</h2>
     </div>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
 
