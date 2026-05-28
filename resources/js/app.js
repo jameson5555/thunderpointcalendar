@@ -125,6 +125,7 @@ Alpine.data('dateRangePicker', ({
 			}
 
 			this.invalidRangeMessage = '';
+			this.syncSelection(instance.selectedDates);
 			this.updateValidity(instance.selectedDates);
 		},
 
