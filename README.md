@@ -32,6 +32,7 @@ You can also watch bite-sized lessons with real-world projects on [Laravel Learn
 ## Local environment
 ```
 php artisan serve --host=127.0.0.1 --port=8087
+npm run dev
 ```
 
 ## Testing safely

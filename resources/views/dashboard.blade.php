@@ -25,17 +25,6 @@
         @endphp
 
         <div class="space-y-6">
-            @if ($errors->any())
-                <div class="rounded-[1rem] border border-[rgba(221,79,22,0.22)] bg-[rgba(255,252,245,0.92)] px-5 py-4 text-sm text-[var(--tp-bark)]">
-                    <p class="font-semibold">Your booking could not be saved.</p>
-                    <ul class="mt-2 space-y-1 list-disc pl-5">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
             <div class="grid gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]">
                 <section class="space-y-6 xl:order-2">
                     <div class="tp-surface overflow-hidden rounded-none sm:rounded-[1.5rem]">

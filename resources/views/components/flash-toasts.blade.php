@@ -1,5 +1,6 @@
 @php
     $status = session('status');
+    $validationErrors = $errors->getBag('default')->all();
 
     $resolvedStatus = match ($status) {
         'profile-updated' => __('Profile updated.'),
@@ -12,7 +13,11 @@
         ['message' => $resolvedStatus, 'variant' => 'success'],
         ['message' => session('success'), 'variant' => 'success'],
         ['message' => session('error'), 'variant' => 'error'],
-    ])->filter(fn (array $toast) => filled($toast['message']))
+    ])->merge(
+        collect($validationErrors)->map(fn (string $message) => ['message' => $message, 'variant' => 'error'])
+    )
+        ->filter(fn (array $toast) => filled($toast['message']))
+        ->unique(fn (array $toast) => sprintf('%s:%s', $toast['variant'], $toast['message']))
         ->values()
         ->map(fn (array $toast, int $index) => [
             'id' => $index + 1,
@@ -48,7 +53,7 @@
                 >
                     <div class="flex items-start gap-3">
                         <div
-                            class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
+                            class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full"
                             :class="toast.variant === 'error' ? 'bg-[var(--tp-ember)]' : 'bg-[var(--tp-pine)]'"
                         ></div>
 

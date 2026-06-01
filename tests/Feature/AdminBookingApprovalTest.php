@@ -138,11 +138,14 @@ class AdminBookingApprovalTest extends TestCase
             'payment_method' => 'paypal',
         ]);
 
-        $this->actingAs($admin)
+        $this->followingRedirects()
+            ->actingAs($admin)
             ->from(route('admin.index'))
             ->patch(route('admin.bookings.approve', 'approval-conflict-group'))
-            ->assertRedirect(route('admin.index', absolute: false))
-            ->assertSessionHasErrors('living_area_ids');
+            ->assertOk()
+            ->assertSee('data-flash-toast-region', false)
+            ->assertSee('These living areas already have a blocking booking in that range: '.$area->name.'.')
+            ->assertDontSee('There was a problem saving one of the admin forms.');
 
         $this->assertDatabaseHas('bookings', [
             'booking_group' => 'approval-conflict-group',

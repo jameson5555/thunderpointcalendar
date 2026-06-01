@@ -105,7 +105,7 @@ class BookingWorkflowTest extends TestCase
             'payment_reference' => 'abc123',
         ]);
 
-        $response = $this->from(route('dashboard'))->actingAs($user)->post(route('bookings.store'), [
+        $response = $this->followingRedirects()->from(route('dashboard'))->actingAs($user)->post(route('bookings.store'), [
             'living_area_ids' => [$area->id],
             'guest_name' => 'New Guest',
             'start_date' => '2026-07-12',
@@ -114,8 +114,10 @@ class BookingWorkflowTest extends TestCase
         ]);
 
         $response
-            ->assertRedirect(route('dashboard', absolute: false))
-            ->assertSessionHasErrors('living_area_ids');
+            ->assertOk()
+            ->assertSee('data-flash-toast-region', false)
+            ->assertSee('These living areas already have a blocking booking in that range: '.$area->name.'.')
+            ->assertDontSee('Your booking could not be saved.');
 
         $this->assertDatabaseCount('bookings', 1);
     }

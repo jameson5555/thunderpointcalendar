@@ -17,17 +17,6 @@
             ];
         @endphp
 
-        @if ($errors->any())
-            <div class="mb-6 rounded-[1rem] border border-[rgba(221,79,22,0.22)] bg-[rgba(255,252,245,0.92)] px-5 py-4 text-sm text-[var(--tp-bark)]">
-                <p class="font-semibold">There was a problem saving one of the admin forms.</p>
-                <ul class="mt-2 space-y-1 leading-6 text-[var(--tp-muted)]">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <section class="space-y-6">
                 <div class="grid gap-4 md:grid-cols-2">
