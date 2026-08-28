@@ -293,6 +293,11 @@ class PoobahAdminAccessTest extends TestCase
         $response->assertOk();
         $response->assertSee('Scoped Guest');
         $response->assertSee('Managed Notification');
+        $response->assertSee('Area settings');
+        $response->assertSee('Bookings to review and update');
+        $response->assertDontSee('Live controls');
+        $response->assertDontSee('Recent activity');
+        $response->assertDontSee('Recent emails');
         $response->assertDontSee('Hidden Guest');
         $response->assertDontSee('Hidden Notification');
     }

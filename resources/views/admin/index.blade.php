@@ -15,11 +15,53 @@
                 'pending' => 'Payment selected',
                 'submitted' => 'Payment submitted',
             ];
+            $draftBookingCount = $bookingGroups->where('status', 'draft')->count();
+            $activeBookingCount = $bookingGroups->where('status', 'active')->count();
+            $completedBookingCount = $bookingGroups->whereIn('status', ['cancelled', 'approved'])->count();
         @endphp
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <section class="space-y-6">
-                <div class="grid gap-4 md:grid-cols-2">
+                <section class="tp-surface p-5 sm:p-6">
+                    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <p class="tp-meta">Start here</p>
+                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Bookings to review and update</h3>
+                            <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--tp-muted)]">
+                                {{ $isAdminView
+                                    ? 'Review booking details first, then approve drafts or update confirmed stays. Area settings stay available in the right column while you work.'
+                                    : 'Review the bookings for the areas you manage first, then approve drafts or update confirmed stays. Your area settings stay available in the right column.' }}
+                            </p>
+                        </div>
+
+                        <div class="grid gap-3 sm:grid-cols-3 lg:min-w-[25rem]">
+                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] px-4 py-3">
+                                <p class="tp-meta">Needs approval</p>
+                                <p class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $draftBookingCount }}</p>
+                            </div>
+                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] px-4 py-3">
+                                <p class="tp-meta">Confirmed stays</p>
+                                <p class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $activeBookingCount }}</p>
+                            </div>
+                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] px-4 py-3">
+                                <p class="tp-meta">Closed items</p>
+                                <p class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $completedBookingCount }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="flex items-end justify-between gap-4">
+                        <div>
+                            <p class="tp-meta">Booking queue</p>
+                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">All booking groups for this page</h3>
+                        </div>
+                        <p class="text-sm leading-6 text-[var(--tp-muted)]">Newest stays and requests appear first.</p>
+                    </div>
+                </section>
+
+                <div class="grid gap-4">
                     @forelse ($bookingGroups as $booking)
                         @php
                             $statusClass = match ($booking['status']) {
@@ -192,47 +234,12 @@
                     @endforelse
                 </div>
 
-                <section class="grid gap-4 md:grid-cols-2">
-                @foreach ($livingAreas as $area)
-                    <article class="tp-surface p-5">
-                        <div class="flex items-center justify-between gap-3">
-                            <h3 class="font-display text-2xl text-[var(--tp-bark)]">{{ $area->name }}</h3>
-                            <span class="inline-flex h-4 w-4 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
-                        </div>
-                        <form method="POST" action="{{ route('admin.living-areas.update', $area) }}" class="mt-5 space-y-4">
-                            @csrf
-                            @method('PATCH')
-
-                            <div>
-                                <x-input-label :for="'name_'.$area->id" :value="__('Area Name')" />
-                                <x-text-input id="{{ 'name_'.$area->id }}" name="name" type="text" class="mt-2 w-full" :value="old('name', $area->name)" />
-                            </div>
-
-                            <div>
-                                <x-input-label :for="'booking_message_'.$area->id" :value="__('Booking Form Message')" />
-                                <textarea id="{{ 'booking_message_'.$area->id }}" name="booking_message" rows="4" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">{{ old('booking_message', $area->booking_message) }}</textarea>
-                            </div>
-
-                            <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(61,52,39,0.7)]">
-                                @foreach ($area->managers as $manager)
-                                    <span class="tp-chip">Poobah: {{ $manager->name }}</span>
-                                @endforeach
-                                @if ($area->managers->isEmpty())
-                                    <span class="tp-chip">No Poobah assigned yet</span>
-                                @endif
-                            </div>
-
-                            <x-primary-button class="justify-center">{{ __('Save Area Settings') }}</x-primary-button>
-                        </form>
-                    </article>
-                @endforeach
-                </section>
-
                 @if ($isAdminView)
                     <section class="tp-surface p-5">
                         <div>
                             <p class="tp-meta">User approvals</p>
                             <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Pending account approvals</h3>
+                            <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Handle these after the current booking queue is under control.</p>
                         </div>
 
                         <div class="mt-6 space-y-4">
@@ -268,6 +275,7 @@
                         <div>
                             <p class="tp-meta">User roles</p>
                             <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Assign Poobahs by living area</h3>
+                            <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Use these role controls after the booking queue is handled.</p>
                         </div>
 
                         <div class="mt-6 space-y-5">
@@ -309,43 +317,52 @@
             </section>
 
             <aside class="space-y-6">
-                <section class="tp-surface-subtle p-6">
-                    <p class="tp-meta">Live controls</p>
-                    <ul class="mt-4 space-y-3 text-sm leading-6 text-[var(--tp-muted)]">
-                        @if ($isAdminView)
-                            <li>Approve new accounts before they can sign in and access the calendar.</li>
-                        @endif
-                        <li>Review every booking group with payment method and reference details.</li>
-                        <li>Approve only the living areas you manage, or everything if you are site admin.</li>
-                        <li>{{ $isAdminView ? 'Assign Poobah access, rename areas, and edit booking-form messages.' : 'Rename your living areas and tailor the booking message shown to users.' }}</li>
-                    </ul>
-                </section>
-
-                <section class="tp-surface p-5">
-                    <p class="tp-meta">Recent activity</p>
-                    <div class="mt-4 space-y-3">
-                        @forelse ($recentActivity as $entry)
-                            <a href="#booking-group-{{ $entry['booking_group'] }}" class="block rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] px-4 py-3 text-sm text-[var(--tp-bark)]">
-                                <p class="font-semibold">{{ $entry['headline'] }}</p>
-                                <p class="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--tp-muted)]">{{ $entry['context'] }}</p>
-                            </a>
-                        @empty
-                            <p class="text-sm leading-6 text-[var(--tp-muted)]">No recent activity.</p>
-                        @endforelse
+                <section class="tp-surface p-5 sm:p-6">
+                    <div>
+                        <p class="tp-meta">Area settings</p>
+                        <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Names and booking messages</h3>
+                        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">
+                            {{ $isAdminView
+                                ? 'Keep these details current so people see the right area names and instructions when they book.'
+                                : 'Update the names and booking notes for the areas you manage without leaving the booking queue.' }}
+                        </p>
                     </div>
-                </section>
 
-                <section class="tp-surface p-5">
-                    <p class="tp-meta">Recent emails</p>
-                    <div class="mt-4 space-y-3">
-                        @forelse ($recentNotifications as $entry)
-                            <a href="#booking-group-{{ $entry['booking_group'] }}" class="block rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] px-4 py-3 text-sm text-[var(--tp-bark)]">
-                                <p class="font-semibold">{{ $entry['headline'] }}</p>
-                                <p class="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--tp-muted)]">{{ $entry['context'] }}</p>
-                            </a>
-                        @empty
-                            <p class="text-sm leading-6 text-[var(--tp-muted)]">No recent emails.</p>
-                        @endforelse
+                    <div class="mt-6 space-y-4">
+                        @foreach ($livingAreas as $area)
+                            <article class="rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] p-4">
+                                <div class="flex items-center justify-between gap-3">
+                                    <h4 class="font-display text-xl text-[var(--tp-bark)]">{{ $area->name }}</h4>
+                                    <span class="inline-flex h-4 w-4 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
+                                </div>
+
+                                <form method="POST" action="{{ route('admin.living-areas.update', $area) }}" class="mt-5 space-y-4">
+                                    @csrf
+                                    @method('PATCH')
+
+                                    <div>
+                                        <x-input-label :for="'name_'.$area->id" :value="__('Area Name')" />
+                                        <x-text-input id="{{ 'name_'.$area->id }}" name="name" type="text" class="mt-2 w-full" :value="old('name', $area->name)" />
+                                    </div>
+
+                                    <div>
+                                        <x-input-label :for="'booking_message_'.$area->id" :value="__('Booking Form Message')" />
+                                        <textarea id="{{ 'booking_message_'.$area->id }}" name="booking_message" rows="4" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">{{ old('booking_message', $area->booking_message) }}</textarea>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(61,52,39,0.7)]">
+                                        @foreach ($area->managers as $manager)
+                                            <span class="tp-chip">Poobah: {{ $manager->name }}</span>
+                                        @endforeach
+                                        @if ($area->managers->isEmpty())
+                                            <span class="tp-chip">No Poobah assigned yet</span>
+                                        @endif
+                                    </div>
+
+                                    <x-primary-button class="justify-center">{{ __('Save Area Settings') }}</x-primary-button>
+                                </form>
+                            </article>
+                        @endforeach
                     </div>
                 </section>
             </aside>
