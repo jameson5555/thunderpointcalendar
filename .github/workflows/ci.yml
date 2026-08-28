@@ -37,13 +37,8 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
-          touch database/database.sqlite
 
       - name: Run migrations and tests
-        env:
-          APP_ENV: testing
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
         run: php artisan test
 
       - name: Build frontend assets
