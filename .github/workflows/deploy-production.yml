@@ -137,10 +137,10 @@ jobs:
           SSH_USERNAME: ${{ secrets.CPANEL_SSH_USERNAME }}
         run: |
           ssh -p 22 "$SSH_USERNAME@$SSH_HOST" \
-            "APP_NAME='$PRODUCTION_APP_NAME' bash -se" <<'REMOTE'
+            "DEPLOY_APP_NAME='$PRODUCTION_APP_NAME' bash -se" <<'REMOTE'
           set -euo pipefail
 
-          APP_DIR="/home/$USER/$APP_NAME"
+          APP_DIR="/home/$USER/$DEPLOY_APP_NAME"
           WEB_DIR="/home/$USER/public_html"
           PHP_BIN="/opt/cpanel/ea-php84/root/usr/bin/php"
 
