@@ -11,6 +11,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="preload" as="image" href="{{ asset('images/thunderpoint-sunset.webp') }}" type="image/webp" fetchpriority="high">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -23,7 +24,7 @@
             }
         @endphp
 
-        <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/thunderpoint-sunset.jpg') }}');">
+        <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: image-set(url('{{ asset('images/thunderpoint-sunset.webp') }}') type('image/webp'), url('{{ asset('images/thunderpoint-sunset.jpg') }}') type('image/jpeg'));">
             <main class="mx-auto flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
                 <section class="w-full max-w-[600px]">
                     <section id="access" x-data="{ panel: '{{ $selectedPanel }}' }" class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7">
