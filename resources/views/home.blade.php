@@ -24,10 +24,10 @@
         @endphp
 
         <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/thunderpoint-sunset.jpg') }}');">
-            <main class="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-8 sm:px-6 lg:px-8">
-                <section class="grid w-full gap-6 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)] lg:items-stretch">
+            <main class="mx-auto flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+                <section class="w-full max-w-[600px]">
                     <section id="access" x-data="{ panel: '{{ $selectedPanel }}' }" class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7">
-                        <div class="mb-6 flex justify-center lg:justify-start">
+                        <div class="mb-6 flex justify-center">
                             <div class="font-display text-[2.7rem] leading-none text-[var(--tp-bark)] sm:text-[3.2rem]">Thunderpoint</div>
                         </div>
 
@@ -149,8 +149,6 @@
                             </div>
                         @endauth
                     </section>
-
-                    <x-thunderpoint-sign class="min-h-[18rem] sm:min-h-[24rem] lg:min-h-full" />
                 </section>
             </main>
         </div>
