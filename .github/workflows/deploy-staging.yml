@@ -50,15 +50,8 @@ jobs:
         run: npm run build
 
       - name: Resolve staging paths
-        env:
-          FTP_SERVER: ${{ secrets.CPANEL_FTP_HOST || secrets.CPANEL_SSH_HOST }}
         run: |
           STAGING_PATH_INPUT="${{ secrets.CPANEL_STAGING_PATH }}"
-
-          if [[ -z "$FTP_SERVER" ]]; then
-            echo "Set CPANEL_FTP_HOST, or CPANEL_SSH_HOST when FTP and SSH use the same cPanel host."
-            exit 1
-          fi
 
           if [[ -z "$STAGING_PATH_INPUT" ]]; then
             echo "CPANEL_STAGING_PATH is not set."
@@ -86,7 +79,6 @@ jobs:
           echo "STAGING_APP_NAME=$STAGING_APP_NAME" >> "$GITHUB_ENV"
           echo "STAGING_APP_DIR=$STAGING_APP_DIR" >> "$GITHUB_ENV"
           echo "STAGING_WEB_DIR=$STAGING_WEB_DIR" >> "$GITHUB_ENV"
-          echo "FTP_SERVER=$FTP_SERVER" >> "$GITHUB_ENV"
           echo "Resolved staging app dir: $STAGING_APP_DIR"
           echo "Resolved staging web dir: $STAGING_WEB_DIR"
 
@@ -104,7 +96,7 @@ jobs:
             --exclude='storage/framework/views/' \
             --exclude='database/database.sqlite'
 
-          # Recreate writable framework directories so FTP deploy uploads them.
+          # Recreate writable framework directories in the release payload.
           mkdir -p \
             deploy-app/storage/framework/cache/data \
             deploy-app/storage/framework/sessions \
@@ -116,10 +108,8 @@ jobs:
 
           # Optional: provide staging .env via CPANEL_STAGING_ENV_B64 secret
           if [[ -n "${{ secrets.CPANEL_STAGING_ENV_B64 }}" ]]; then
-            mkdir deploy-env
-            echo "${{ secrets.CPANEL_STAGING_ENV_B64 }}" | base64 --decode > deploy-env/.env
-            chmod 600 deploy-env/.env
-            echo "HAS_STAGING_ENV=true" >> "$GITHUB_ENV"
+            printf '%s' "${{ secrets.CPANEL_STAGING_ENV_B64 }}" | base64 --decode > deploy-app/.env
+            chmod 600 deploy-app/.env
           fi
 
       - name: Prepare staging web payload
@@ -129,45 +119,56 @@ jobs:
 
           perl -0pi -e "s#__DIR__\.'/\.\./storage/framework/maintenance\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/storage/framework/maintenance.php'#g; s#__DIR__\.'/\.\./vendor/autoload\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/vendor/autoload.php'#g; s#__DIR__\.'/\.\./bootstrap/app\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/bootstrap/app.php'#g" deploy-public/index.php
 
-      - name: Upload app to cPanel staging via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
-        with:
-          server: ${{ env.FTP_SERVER }}
-          username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
-          password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
-          protocol: ftp
-          server-dir: ${{ env.STAGING_APP_DIR }}
-          local-dir: ./deploy-app/
-          exclude: |
-            **/.env
-            **/.git*
-            **/.github/**
-            **/node_modules/**
-            **/tests/**
+      - name: Package staging payloads
+        run: |
+          tar -C deploy-app -czf staging-app.tar.gz .
+          tar -C deploy-public -czf staging-public.tar.gz .
 
-      - name: Upload .env to cPanel staging via FTP
-        if: env.HAS_STAGING_ENV == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
-        with:
-          server: ${{ env.FTP_SERVER }}
-          username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
-          password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
-          protocol: ftp
-          server-dir: ${{ env.STAGING_APP_DIR }}
-          local-dir: ./deploy-env/
+      - name: Configure staging SSH access
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.CPANEL_SSH_USERNAME }}
+        run: |
+          if [[ -z "$SSH_PRIVATE_KEY" || -z "$SSH_HOST" || -z "$SSH_USERNAME" ]]; then
+            echo "CPANEL_SSH_PRIVATE_KEY, CPANEL_SSH_HOST, and CPANEL_SSH_USERNAME must be set."
+            exit 1
+          fi
 
-      - name: Upload public files to cPanel staging web root via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
-        with:
-          server: ${{ env.FTP_SERVER }}
-          username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
-          password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
-          protocol: ftp
-          server-dir: ${{ env.STAGING_WEB_DIR }}
-          local-dir: ./deploy-public/
-          exclude: |
-            **/.env
-            **/.git*
-            **/.github/**
-            **/node_modules/**
-            **/tests/**
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload compressed staging payloads
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.CPANEL_SSH_USERNAME }}
+        run: |
+          scp -P 22 staging-app.tar.gz staging-public.tar.gz \
+            "$SSH_USERNAME@$SSH_HOST:/home/$SSH_USERNAME/"
+
+      - name: Install staging release
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.CPANEL_SSH_USERNAME }}
+        run: |
+          ssh -p 22 "$SSH_USERNAME@$SSH_HOST" \
+            "DEPLOY_APP_NAME='$STAGING_APP_NAME' bash -se" <<'REMOTE'
+          set -euo pipefail
+
+          APP_DIR="/home/$USER/$DEPLOY_APP_NAME"
+          WEB_DIR="/home/$USER/public_html/$DEPLOY_APP_NAME/public"
+          PHP_BIN="/opt/cpanel/ea-php84/root/usr/bin/php"
+
+          mkdir -p "$APP_DIR" "$WEB_DIR"
+          tar -xzf "/home/$USER/staging-app.tar.gz" -C "$APP_DIR"
+          chmod -R ug+rwX "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
+
+          cd "$APP_DIR"
+          "$PHP_BIN" artisan migrate --seed --force
+          "$PHP_BIN" artisan optimize
+
+          tar -xzf "/home/$USER/staging-public.tar.gz" -C "$WEB_DIR"
+          rm -f "/home/$USER/staging-app.tar.gz" "/home/$USER/staging-public.tar.gz"
+          REMOTE
