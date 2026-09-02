@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
@@ -35,7 +35,7 @@ jobs:
           coverage: none
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: npm
@@ -50,8 +50,15 @@ jobs:
         run: npm run build
 
       - name: Resolve staging paths
+        env:
+          FTP_SERVER: ${{ secrets.CPANEL_FTP_HOST || secrets.CPANEL_SSH_HOST }}
         run: |
           STAGING_PATH_INPUT="${{ secrets.CPANEL_STAGING_PATH }}"
+
+          if [[ -z "$FTP_SERVER" ]]; then
+            echo "Set CPANEL_FTP_HOST, or CPANEL_SSH_HOST when FTP and SSH use the same cPanel host."
+            exit 1
+          fi
 
           if [[ -z "$STAGING_PATH_INPUT" ]]; then
             echo "CPANEL_STAGING_PATH is not set."
@@ -79,6 +86,7 @@ jobs:
           echo "STAGING_APP_NAME=$STAGING_APP_NAME" >> "$GITHUB_ENV"
           echo "STAGING_APP_DIR=$STAGING_APP_DIR" >> "$GITHUB_ENV"
           echo "STAGING_WEB_DIR=$STAGING_WEB_DIR" >> "$GITHUB_ENV"
+          echo "FTP_SERVER=$FTP_SERVER" >> "$GITHUB_ENV"
           echo "Resolved staging app dir: $STAGING_APP_DIR"
           echo "Resolved staging web dir: $STAGING_WEB_DIR"
 
@@ -122,9 +130,9 @@ jobs:
           perl -0pi -e "s#__DIR__\.'/\.\./storage/framework/maintenance\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/storage/framework/maintenance.php'#g; s#__DIR__\.'/\.\./vendor/autoload\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/vendor/autoload.php'#g; s#__DIR__\.'/\.\./bootstrap/app\.php'#__DIR__.'/../../../${{ env.STAGING_APP_NAME }}/bootstrap/app.php'#g" deploy-public/index.php
 
       - name: Upload app to cPanel staging via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
-          server: ${{ secrets.CPANEL_FTP_HOST }}
+          server: ${{ env.FTP_SERVER }}
           username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
           protocol: ftp
@@ -139,9 +147,9 @@ jobs:
 
       - name: Upload .env to cPanel staging via FTP
         if: env.HAS_STAGING_ENV == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
-          server: ${{ secrets.CPANEL_FTP_HOST }}
+          server: ${{ env.FTP_SERVER }}
           username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
           protocol: ftp
@@ -149,9 +157,9 @@ jobs:
           local-dir: ./deploy-env/
 
       - name: Upload public files to cPanel staging web root via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
-          server: ${{ secrets.CPANEL_FTP_HOST }}
+          server: ${{ env.FTP_SERVER }}
           username: ${{ secrets.CPANEL_STAGING_FTP_USERNAME }}
           password: ${{ secrets.CPANEL_STAGING_FTP_PASSWORD }}
           protocol: ftp
