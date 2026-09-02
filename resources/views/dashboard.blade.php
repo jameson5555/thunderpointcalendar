@@ -29,8 +29,8 @@
         @endphp
 
         <div>
-            <div class="grid gap-4 sm:gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]">
-                <section class="order-1 xl:col-start-2 xl:row-start-1" x-data="calendarBookingDetails()">
+            <div class="grid gap-4 sm:gap-6 xl:block" data-dashboard-layout>
+                <section class="order-1" x-data="calendarBookingDetails()" data-calendar-overview>
                     <div class="tp-surface overflow-hidden rounded-none sm:rounded-[1.5rem]">
                         <div class="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center border-b border-[var(--tp-border)] px-3 py-2.5 sm:grid-cols-[3rem_minmax(0,1fr)_3rem] sm:px-5 sm:py-4">
                             <a href="{{ route('dashboard', ['month' => $previousMonth]) }}" class="tp-calendar-nav-button" aria-label="View previous month">
@@ -160,7 +160,7 @@
 
                 </section>
 
-                <aside id="booking-form" class="order-2 scroll-mt-4 xl:col-start-1 xl:row-start-1" data-booking-form>
+                <aside id="booking-form" class="order-2 scroll-mt-4" data-booking-form>
                     <section class="tp-surface px-5 py-6 sm:p-6">
                         <h2 class="font-display text-2xl text-[var(--tp-bark)] sm:text-3xl">Book dates</h2>
 
@@ -254,7 +254,7 @@
                     </section>
                 </aside>
 
-                <section class="order-3 tp-surface px-5 py-6 sm:p-6 xl:col-start-2 xl:row-start-2" data-your-bookings>
+                <section class="order-3 tp-surface px-5 py-6 sm:p-6" data-your-bookings>
                     <h2 class="font-display text-2xl text-[var(--tp-bark)]">Your bookings</h2>
 
                     <div class="mt-5 space-y-4 sm:mt-6">

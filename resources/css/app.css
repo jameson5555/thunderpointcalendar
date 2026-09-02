@@ -491,3 +491,25 @@
 		background: #fffaf0;
 	}
 }
+
+@media (min-width: 1280px) {
+	[data-dashboard-layout] {
+		display: flow-root;
+	}
+
+	[data-calendar-overview],
+	[data-your-bookings] {
+		clear: right;
+		float: right;
+		width: calc(100% - 25.5rem);
+	}
+
+	[data-booking-form] {
+		float: left;
+		width: 24rem;
+	}
+
+	[data-your-bookings] {
+		margin-top: 1.5rem;
+	}
+}
