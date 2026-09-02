@@ -27,6 +27,7 @@
     x-init="init()"
     class="space-y-2"
     data-date-range-picker
+    data-persistent-range-picker
 >
     <x-input-label :for="$id" :value="$label" />
 
@@ -44,10 +45,12 @@
         >
 
         <button
+            x-ref="trigger"
             type="button"
             class="tp-date-range-trigger absolute right-3 top-[0.9rem]"
             @click="toggle()"
             aria-label="Open date range picker"
+            :aria-expanded="isOpen.toString()"
         >
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M8 2V5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />

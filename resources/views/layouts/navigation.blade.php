@@ -1,6 +1,6 @@
 <nav x-data="{ open: false }" class="relative z-40 border-b border-[var(--tp-border)] bg-[rgba(245,237,212,0.96)]">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex min-h-20 justify-between gap-4 py-4">
+        <div class="flex min-h-[3.75rem] justify-between gap-4 py-2 md:min-h-20 md:py-4">
             <div class="flex min-w-0 items-center gap-6">
                 <div class="shrink-0">
                     <a href="{{ route('dashboard') }}">
@@ -66,8 +66,8 @@
             </div>
 
             <div class="-me-2 flex items-center md:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center rounded-full border border-[var(--tp-border)] bg-[rgba(247,240,215,0.92)] p-3 text-[var(--tp-bark)] transition hover:border-[var(--tp-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                <button @click="open = ! open" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--tp-border)] bg-[rgba(247,240,215,0.92)] text-[var(--tp-bark)] transition hover:border-[var(--tp-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]" aria-label="Toggle navigation" :aria-expanded="open.toString()">
+                    <svg class="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>

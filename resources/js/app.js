@@ -36,6 +36,21 @@ Alpine.data('dateRangePicker', ({
 	areaInputName = 'living_area_ids[]',
 } = {}) => {
 	let pickerInstance = null;
+	let pickerFooterSummary = null;
+	let pickerDoneButton = null;
+	let pickerBackdrop = null;
+	const twoMonthPickerQuery = window.matchMedia('(min-width: 1024px)');
+	const syncVisibleMonths = () => {
+		if (! pickerInstance) {
+			return;
+		}
+
+		const showMonths = twoMonthPickerQuery.matches ? 2 : 1;
+
+		if (pickerInstance.config.showMonths !== showMonths) {
+			pickerInstance.set('showMonths', showMonths);
+		}
+	};
 
 	return {
 		areaInputs: [],
@@ -43,6 +58,7 @@ Alpine.data('dateRangePicker', ({
 		disabledRangesByArea,
 		invalidRangeMessage: '',
 		hasSelection: false,
+		isOpen: false,
 		summary: emptySummary,
 
 		init() {
@@ -55,7 +71,8 @@ Alpine.data('dateRangePicker', ({
 				disableMobile: true,
 				disable: this.currentUnavailableRanges,
 				defaultDate: initialDates,
-				showMonths: window.matchMedia('(min-width: 768px)').matches ? 2 : 1,
+				closeOnSelect: false,
+				showMonths: twoMonthPickerQuery.matches ? 2 : 1,
 				monthSelectorType: 'static',
 				position: 'auto center',
 				prevArrow: '<span aria-hidden="true">&larr;</span>',
@@ -63,13 +80,30 @@ Alpine.data('dateRangePicker', ({
 				onReady: (_selectedDates, _dateString, instance) => {
 					pickerInstance = instance;
 					instance.calendarContainer.classList.add('tp-flatpickr');
+					this.installPickerActions(instance);
 					this.refreshUnavailableRanges(instance);
 					this.syncSelection(instance.selectedDates);
 				},
 				onChange: (selectedDates) => {
 					this.syncSelection(selectedDates);
 				},
+				onOpen: () => {
+					syncVisibleMonths();
+					this.isOpen = true;
+					pickerBackdrop?.classList.add('is-open');
+				},
+				onClose: () => {
+					this.isOpen = false;
+					pickerBackdrop?.classList.remove('is-open');
+					this.updateValidity(pickerInstance?.selectedDates ?? []);
+				},
+				onDestroy: () => {
+					twoMonthPickerQuery.removeEventListener('change', syncVisibleMonths);
+					pickerBackdrop?.remove();
+				},
 			});
+
+			twoMonthPickerQuery.addEventListener('change', syncVisibleMonths);
 
 			this.areaInputs.forEach((input) => {
 				input.addEventListener('change', () => {
@@ -80,6 +114,50 @@ Alpine.data('dateRangePicker', ({
 			this.$refs.display.addEventListener('blur', () => {
 				this.updateValidity(pickerInstance?.selectedDates ?? []);
 			});
+		},
+
+		installPickerActions(instance) {
+			const footer = document.createElement('div');
+			footer.className = 'tp-flatpickr-actions';
+			footer.dataset.datePickerActions = '';
+
+			pickerFooterSummary = document.createElement('p');
+			pickerFooterSummary.className = 'tp-flatpickr-actions-summary';
+			pickerFooterSummary.setAttribute('aria-live', 'polite');
+
+			const controls = document.createElement('div');
+			controls.className = 'tp-flatpickr-actions-controls';
+
+			const clearButton = document.createElement('button');
+			clearButton.type = 'button';
+			clearButton.className = 'tp-flatpickr-clear';
+			clearButton.dataset.datePickerClear = '';
+			clearButton.textContent = 'Clear';
+			clearButton.addEventListener('click', () => this.clear());
+
+			pickerDoneButton = document.createElement('button');
+			pickerDoneButton.type = 'button';
+			pickerDoneButton.className = 'tp-flatpickr-done';
+			pickerDoneButton.dataset.datePickerDone = '';
+			pickerDoneButton.textContent = 'Done';
+			pickerDoneButton.addEventListener('click', () => {
+				if (instance.selectedDates.length === 2 && this.invalidRangeMessage === '') {
+					instance.close();
+					this.$refs.trigger.focus();
+				}
+			});
+
+			controls.append(clearButton, pickerDoneButton);
+			footer.append(pickerFooterSummary, controls);
+			instance.calendarContainer.append(footer);
+
+			pickerBackdrop = document.createElement('button');
+			pickerBackdrop.type = 'button';
+			pickerBackdrop.className = 'tp-flatpickr-backdrop';
+			pickerBackdrop.tabIndex = -1;
+			pickerBackdrop.setAttribute('aria-label', 'Close date range picker');
+			pickerBackdrop.addEventListener('click', () => instance.close());
+			document.body.append(pickerBackdrop);
 		},
 
 		findAreaInputs(areaInputName) {
@@ -163,6 +241,19 @@ Alpine.data('dateRangePicker', ({
 			this.$refs.display.value = this.buildDisplayValue(selectedDates);
 			this.summary = this.buildSummary(selectedDates);
 			this.updateValidity(selectedDates);
+			this.updatePickerActions(selectedDates);
+		},
+
+		updatePickerActions(selectedDates) {
+			if (pickerFooterSummary) {
+				pickerFooterSummary.textContent = selectedDates.length === 0
+					? 'Choose arrival and departure'
+					: this.summary;
+			}
+
+			if (pickerDoneButton) {
+				pickerDoneButton.disabled = selectedDates.length !== 2 || this.invalidRangeMessage !== '';
+			}
 		},
 
 		buildDisplayValue(selectedDates) {
@@ -230,6 +321,52 @@ Alpine.data('dateRangePicker', ({
 		},
 	};
 });
+
+Alpine.data('calendarBookingDetails', () => ({
+	isOpen: false,
+	selectedBooking: null,
+	triggerElement: null,
+
+	openDetails(booking, triggerElement) {
+		this.selectedBooking = booking;
+		this.triggerElement = triggerElement;
+		this.isOpen = true;
+		document.body.classList.add('overflow-y-hidden');
+
+		this.$nextTick(() => this.$refs.closeButton?.focus());
+	},
+
+	closeDetails() {
+		if (! this.isOpen) {
+			return;
+		}
+
+		this.isOpen = false;
+		document.body.classList.remove('overflow-y-hidden');
+		this.$nextTick(() => this.triggerElement?.focus());
+	},
+
+	trapFocus(event) {
+		const focusableElements = Array.from(this.$refs.dialog.querySelectorAll(
+			'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+		)).filter((element) => ! element.disabled);
+
+		if (focusableElements.length === 0) {
+			return;
+		}
+
+		const firstElement = focusableElements[0];
+		const lastElement = focusableElements[focusableElements.length - 1];
+
+		if (event.shiftKey && document.activeElement === firstElement) {
+			event.preventDefault();
+			lastElement.focus();
+		} else if (! event.shiftKey && document.activeElement === lastElement) {
+			event.preventDefault();
+			firstElement.focus();
+		}
+	},
+}));
 
 Alpine.data('flashToasts', (initialToasts = []) => ({
 	toasts: initialToasts.map((toast) => ({

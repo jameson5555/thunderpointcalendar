@@ -21,13 +21,13 @@
 
             @isset($header)
                 <header class="relative z-10 border-b border-[var(--tp-border)] bg-[rgba(245,237,212,0.96)]">
-                    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                    <div class="mx-auto max-w-7xl px-3 py-2.5 sm:px-6 sm:py-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
             @endisset
 
-            <main class="pb-12 pt-2">
+            <main class="pb-8 pt-0 sm:pb-12 sm:pt-2">
                 {{ $slot }}
             </main>
         </div>

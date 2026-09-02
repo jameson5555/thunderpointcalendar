@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\LivingArea;
 use App\Models\NotificationLog;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Database\Seeders\LivingAreaSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -32,8 +33,49 @@ class BookingWorkflowTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('data-date-range-picker', false)
+            ->assertSee('data-persistent-range-picker', false)
             ->assertSee('Choose arrival and departure')
             ->assertDontSee('type="date"', false);
+    }
+
+    public function test_dashboard_prioritizes_calendar_then_booking_form_then_your_bookings(): void
+    {
+        CarbonImmutable::setTestNow('2026-09-02 12:00:00');
+
+        try {
+            $user = User::factory()->create();
+            $area = LivingArea::query()->firstOrFail();
+
+            Booking::query()->create([
+                'booking_group' => 'mobile-calendar-group',
+                'living_area_id' => $area->id,
+                'created_by' => $user->id,
+                'guest_name' => 'Mobile Calendar Guest',
+                'start_date' => '2026-09-10',
+                'end_date' => '2026-09-12',
+                'status' => Booking::STATUS_ACTIVE,
+                'amount_cents' => 6000,
+                'payment_status' => Booking::PAYMENT_SUBMITTED,
+                'payment_method' => 'paypal',
+            ]);
+
+            $this->actingAs($user)
+                ->get(route('dashboard'))
+                ->assertOk()
+                ->assertSeeInOrder([
+                    'data-calendar-booking-trigger',
+                    'data-booking-jump',
+                    'data-booking-form',
+                    'data-your-bookings',
+                ], false)
+                ->assertSee('data-calendar-booking-dialog', false)
+                ->assertSee('Mobile Calendar Guest')
+                ->assertSee($area->name)
+                ->assertSee('Sep 10, 2026')
+                ->assertSee('Sep 12, 2026');
+        } finally {
+            CarbonImmutable::setTestNow();
+        }
     }
 
     public function test_approved_users_can_create_a_draft_booking(): void

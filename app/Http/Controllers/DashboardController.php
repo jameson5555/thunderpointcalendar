@@ -147,6 +147,12 @@ class DashboardController extends Controller
                 if ($booking->status === Booking::STATUS_ACTIVE) {
                     return [
                         'label' => $booking->guest_name,
+                        'area_name' => $booking->livingArea?->name ?? 'Unknown part',
+                        'area_color' => $deepColor,
+                        'guest_name' => $booking->guest_name,
+                        'start_date' => $booking->start_date->format('M j, Y'),
+                        'end_date' => $booking->end_date->format('M j, Y'),
+                        'status_label' => 'Confirmed',
                         'style' => $baseClasses.' text-white',
                         'inline_style' => sprintf('background-color: %s;', $deepColor),
                         'column_start' => $columnStart,
@@ -164,6 +170,12 @@ class DashboardController extends Controller
 
                 return [
                     'label' => sprintf('%s - DRAFT', $booking->guest_name),
+                    'area_name' => $booking->livingArea?->name ?? 'Unknown part',
+                    'area_color' => $deepColor,
+                    'guest_name' => $booking->guest_name,
+                    'start_date' => $booking->start_date->format('M j, Y'),
+                    'end_date' => $booking->end_date->format('M j, Y'),
+                    'status_label' => 'Draft',
                     'style' => $baseClasses.' border border-dashed',
                     'inline_style' => sprintf('border-color: %s; background-color: %s; color: %s;', $deepColor, $softColor, $deepColor),
                     'column_start' => $columnStart,
