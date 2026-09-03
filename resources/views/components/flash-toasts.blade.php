@@ -31,8 +31,6 @@
         x-init="start()"
         class="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center px-4 py-6 -translate-y-16 sm:-translate-y-20"
         data-flash-toast-region
-        aria-live="polite"
-        aria-atomic="true"
     >
         <div class="flex w-full max-w-md flex-col gap-3">
             <template x-for="toast in toasts" :key="toast.id">
@@ -47,14 +45,14 @@
                     x-transition:leave-end="scale-95 opacity-0"
                     :class="toast.variant === 'error'
                         ? 'border-[rgba(122,74,86,0.72)] bg-[rgba(255,244,238,0.82)] text-[var(--tp-bark)]'
-                        : 'border-[rgba(26,140,145,0.72)] bg-[rgba(255,252,245,0.82)] text-[var(--tp-pine)]'"
+                        : 'border-[var(--tp-status)] bg-[rgba(255,252,245,0.94)] text-[var(--tp-status)]'"
                     class="pointer-events-auto overflow-hidden rounded-[1.25rem] border-[3px] px-4 py-4 shadow-[0_18px_40px_rgba(95,72,56,0.16)] backdrop-blur-md backdrop-saturate-150"
-                    role="status"
+                    :role="toast.variant === 'error' ? 'alert' : 'status'"
                 >
                     <div class="flex items-start gap-3">
                         <div
                             class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full"
-                            :class="toast.variant === 'error' ? 'bg-[var(--tp-ember)]' : 'bg-[var(--tp-pine)]'"
+                            :class="toast.variant === 'error' ? 'bg-[var(--tp-error)]' : 'bg-[var(--tp-status)]'"
                         ></div>
 
                         <p class="flex-1 text-sm font-semibold leading-6" x-text="toast.message"></p>

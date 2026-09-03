@@ -18,8 +18,9 @@
         <form method="post" action="{{ route('profile.destroy') }}" class="p-6">
             @csrf
             @method('delete')
+            <x-error-summary :errors="$errors->userDeletion" class="mb-5" />
 
-            <h2 class="text-lg font-medium text-gray-900">
+            <h2 id="confirm-user-deletion-title" class="text-lg font-medium text-gray-900">
                 {{ __('Are you sure you want to delete your account?') }}
             </h2>
 
@@ -36,9 +37,11 @@
                     type="password"
                     class="mt-1 block w-3/4"
                     placeholder="{{ __('Password') }}"
+                    :invalid="$errors->userDeletion->has('password')"
+                    error-id="delete_password_error"
                 />
 
-                <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
+                <x-input-error id="delete_password_error" :messages="$errors->userDeletion->get('password')" class="mt-2" />
             </div>
 
             <div class="mt-6 flex justify-end">

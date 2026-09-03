@@ -7,6 +7,8 @@ use Illuminate\View\View;
 
 class AppLayout extends Component
 {
+    public function __construct(public string $title = 'Calendar') {}
+
     /**
      * Get the view / contents that represents the component.
      */

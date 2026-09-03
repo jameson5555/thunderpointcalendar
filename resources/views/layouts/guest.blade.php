@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Thunderpoint') }}</title>
+        <title>{{ $title }} · {{ config('app.name', 'Thunderpoint') }}</title>
 
         <x-favicon />
 
@@ -17,8 +17,9 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased text-[var(--tp-ink)]">
+        <a href="#main-content" class="tp-skip-link">Skip to main content</a>
         <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: image-set(url('{{ asset('images/thunderpoint-sunset.webp') }}') type('image/webp'), url('{{ asset('images/thunderpoint-sunset.jpg') }}') type('image/jpeg'));">
-            <main class="mx-auto flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+            <main id="main-content" tabindex="-1" class="mx-auto flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
                 <section class="w-full max-w-[600px]">
                     <section class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7">
                         <div class="mb-6 flex justify-center">

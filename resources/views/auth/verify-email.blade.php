@@ -1,6 +1,6 @@
-<x-guest-layout>
+<x-guest-layout title="Verify email">
     <div class="mb-6">
-        <h2 class="font-display text-3xl text-[var(--tp-bark)]">Verify email</h2>
+        <h1 class="font-display text-3xl text-[var(--tp-bark)]">Verify email</h1>
         <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Use the link in your email before signing in.</p>
     </div>
 
@@ -18,7 +18,7 @@
         <form method="POST" action="{{ route('logout') }}">
             @csrf
 
-            <button type="submit" class="tp-link text-sm focus:outline-none">
+            <button type="submit" class="tp-link text-sm">
                 {{ __('Log Out') }}
             </button>
         </form>

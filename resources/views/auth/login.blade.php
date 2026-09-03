@@ -1,16 +1,17 @@
-<x-guest-layout>
+<x-guest-layout title="Sign in">
     <div class="mb-6">
-        <h2 class="font-display text-3xl text-[var(--tp-bark)]">Sign in</h2>
+        <h1 class="font-display text-3xl text-[var(--tp-bark)]">Sign in</h1>
     </div>
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
+        <x-error-summary class="mb-4" :messages="$errors->all()" />
 
         <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" :invalid="$errors->has('email')" error-id="email_error" />
+            <x-input-error id="email_error" :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
@@ -20,9 +21,9 @@
             <x-text-input id="password" class="block mt-1 w-full"
                             type="password"
                             name="password"
-                            required autocomplete="current-password" />
+                            required autocomplete="current-password" :invalid="$errors->has('password')" error-id="password_error" />
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <x-input-error id="password_error" :messages="$errors->get('password')" class="mt-2" />
         </div>
 
         <!-- Remember Me -->
@@ -35,7 +36,7 @@
 
         <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             @if (Route::has('password.request'))
-                <a class="tp-link text-sm focus:outline-none" href="{{ route('password.request') }}">
+                <a class="tp-link text-sm" href="{{ route('password.request') }}">
                     {{ __('Forgot your password?') }}
                 </a>
             @endif

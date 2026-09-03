@@ -159,8 +159,8 @@ class DashboardController extends Controller
                 $lanes[$lane] = $columnEnd - 1;
 
                 $deepColor = $booking->livingArea?->deep_color ?? '#4a3422';
-                $softColor = $booking->livingArea?->soft_color ?? '#f7f1df';
-                $baseClasses = 'truncate px-2 py-1 text-[10px] font-semibold leading-4 sm:px-2.5 sm:text-[11px]';
+                $labelColor = $booking->livingArea?->labelColor() ?? '#fffdf5';
+                $baseClasses = 'min-h-6 truncate px-2 py-1 text-[10px] font-semibold leading-4 sm:px-2.5 sm:text-[11px]';
 
                 if ($booking->status === Booking::STATUS_ACTIVE) {
                     return [
@@ -172,8 +172,8 @@ class DashboardController extends Controller
                         'start_date' => $booking->start_date->format('M j, Y'),
                         'end_date' => $booking->end_date->format('M j, Y'),
                         'status_label' => 'Confirmed',
-                        'style' => $baseClasses.' text-white',
-                        'inline_style' => sprintf('background-color: %s;', $deepColor),
+                        'style' => $baseClasses,
+                        'inline_style' => sprintf('background-color: %s; color: %s;', $deepColor, $labelColor),
                         'column_start' => $columnStart,
                         'column_end' => $columnEnd,
                         'lane' => $lane + 1,
@@ -196,8 +196,8 @@ class DashboardController extends Controller
                     'start_date' => $booking->start_date->format('M j, Y'),
                     'end_date' => $booking->end_date->format('M j, Y'),
                     'status_label' => 'Draft',
-                    'style' => $baseClasses.' border border-dashed',
-                    'inline_style' => sprintf('border-color: %s; background-color: %s; color: %s;', $deepColor, $softColor, $deepColor),
+                    'style' => $baseClasses.' border border-dashed border-[var(--tp-paper-soft)]',
+                    'inline_style' => sprintf('background-color: %s; color: %s;', $deepColor, $labelColor),
                     'column_start' => $columnStart,
                     'column_end' => $columnEnd,
                     'lane' => $lane + 1,
@@ -241,6 +241,7 @@ class DashboardController extends Controller
                 ->map(fn (Booking $booking) => [
                     'name' => $booking->livingArea?->name ?? 'Unknown part',
                     'color' => $booking->livingArea?->deep_color ?? '#4a3422',
+                    'labelColor' => $booking->livingArea?->labelColor() ?? '#fffdf5',
                 ])
                 ->values()
                 ->all(),

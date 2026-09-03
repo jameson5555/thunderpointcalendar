@@ -1,7 +1,7 @@
-<x-guest-layout>
+<x-guest-layout title="Approval pending">
     <div class="space-y-5">
         <div class="space-y-2">
-            <p class="tp-meta text-[var(--tp-lake)]">Account access</p>
+            <p class="tp-meta text-[var(--tp-status)]">Account access</p>
             <h1 class="font-display text-3xl text-[var(--tp-bark)]">Approval pending</h1>
         </div>
 

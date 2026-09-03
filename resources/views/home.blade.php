@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ config('app.name', 'Thunderpoint') }}</title>
+        <title>Sign in or register · {{ config('app.name', 'Thunderpoint') }}</title>
 
         <x-favicon />
 
@@ -16,6 +16,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-[var(--tp-ink)] antialiased">
+        <a href="#main-content" class="tp-skip-link">Skip to main content</a>
         @php
             $selectedPanel = old('auth_panel', $authPanel);
 
@@ -25,9 +26,19 @@
         @endphp
 
         <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: image-set(url('{{ asset('images/thunderpoint-sunset.webp') }}') type('image/webp'), url('{{ asset('images/thunderpoint-sunset.jpg') }}') type('image/jpeg'));">
-            <main class="mx-auto flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+            <main id="main-content" tabindex="-1" class="mx-auto flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
                 <section class="w-full max-w-[600px]">
-                    <section id="access" x-data="{ panel: '{{ $selectedPanel }}' }" class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7">
+                    <section
+                        id="access"
+                        x-data="{
+                            panel: '{{ $selectedPanel }}',
+                            selectPanel(next) {
+                                this.panel = next;
+                                this.$nextTick(() => this.$refs[`${next}Tab`]?.focus());
+                            },
+                        }"
+                        class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7"
+                    >
                         <div class="mb-6 flex justify-center">
                             <div class="font-display text-[2.7rem] leading-none text-[var(--tp-bark)] sm:text-[3.2rem]">Thunderpoint</div>
                         </div>
@@ -35,8 +46,8 @@
                         @auth
                             <div class="space-y-5">
                                 <div class="space-y-2">
-                                    <p class="tp-meta text-[var(--tp-lake)]">Signed in</p>
-                                    <h2 class="font-display text-3xl text-[var(--tp-bark)]">{{ auth()->user()->name }}</h2>
+                                    <p class="tp-meta text-[var(--tp-status)]">Signed in</p>
+                                    <h1 class="font-display text-3xl text-[var(--tp-bark)]">{{ auth()->user()->name }}</h1>
                                 </div>
 
                                 <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -51,18 +62,19 @@
                                 </div>
                             </div>
                         @else
-                            <div class="grid grid-cols-2 gap-2 rounded-full bg-[rgba(226,208,181,0.4)] p-1">
-                                <button type="button" @click="panel = 'login'" :class="panel === 'login' ? 'bg-[rgba(255,252,247,0.96)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Sign in</button>
-                                <button type="button" @click="panel = 'register'" :class="panel === 'register' ? 'bg-[rgba(255,252,247,0.96)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Register</button>
+                            <h1 class="sr-only">Sign in or register</h1>
+                            <div class="grid grid-cols-2 gap-2 rounded-full bg-[rgba(226,208,181,0.4)] p-1" role="tablist" aria-label="Account access">
+                                <button id="login-tab" x-ref="loginTab" type="button" role="tab" aria-controls="login-panel" :aria-selected="(panel === 'login').toString()" :tabindex="panel === 'login' ? 0 : -1" @click="panel = 'login'" @keydown.right.prevent="selectPanel('register')" @keydown.end.prevent="selectPanel('register')" :class="panel === 'login' ? 'bg-[rgba(255,252,247,0.96)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Sign in</button>
+                                <button id="register-tab" x-ref="registerTab" type="button" role="tab" aria-controls="register-panel" :aria-selected="(panel === 'register').toString()" :tabindex="panel === 'register' ? 0 : -1" @click="panel = 'register'" @keydown.left.prevent="selectPanel('login')" @keydown.home.prevent="selectPanel('login')" :class="panel === 'register' ? 'bg-[rgba(255,252,247,0.96)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Register</button>
                             </div>
 
-                            <div x-show="panel === 'login'" x-cloak class="mt-6">
+                            <div id="login-panel" role="tabpanel" aria-labelledby="login-tab" x-show="panel === 'login'" x-cloak class="mt-6">
                                 <div class="mb-6">
                                     <h2 class="font-display text-3xl text-[var(--tp-bark)]">Sign in</h2>
                                 </div>
 
                                 @if ($errors->getBag('login')->any())
-                                    <div class="mb-4 rounded-[1rem] border border-[rgba(122,74,86,0.18)] bg-[rgba(122,74,86,0.08)] px-4 py-3 text-sm text-[var(--tp-bark)]">
+                                    <div id="home-login-errors" class="mb-4 rounded-[1rem] border border-[var(--tp-error)] bg-[rgba(145,60,25,0.08)] px-4 py-3 text-sm text-[var(--tp-bark)]" role="alert" tabindex="-1" data-error-summary>
                                         <ul class="space-y-1">
                                             @foreach ($errors->getBag('login')->all() as $error)
                                                 <li>{{ $error }}</li>
@@ -77,12 +89,12 @@
 
                                     <div>
                                         <x-input-label for="home_login_email" :value="__('Email')" />
-                                        <x-text-input id="home_login_email" class="mt-2 w-full" type="email" name="email" :value="old('auth_panel') === 'login' ? old('email') : ''" required autofocus autocomplete="username" />
+                                        <x-text-input id="home_login_email" class="mt-2 w-full" type="email" name="email" :value="old('auth_panel') === 'login' ? old('email') : ''" required autofocus autocomplete="username" :invalid="$errors->getBag('login')->has('email')" error-id="home-login-errors" />
                                     </div>
 
                                     <div>
                                         <x-input-label for="home_login_password" :value="__('Password')" />
-                                        <x-text-input id="home_login_password" class="mt-2 w-full" type="password" name="password" required autocomplete="current-password" />
+                                        <x-text-input id="home_login_password" class="mt-2 w-full" type="password" name="password" required autocomplete="current-password" :invalid="$errors->getBag('login')->has('password') || $errors->getBag('login')->has('email')" error-id="home-login-errors" />
                                     </div>
 
                                     <label for="home_remember_me" class="inline-flex items-center gap-2 text-sm text-[var(--tp-muted)]">
@@ -92,7 +104,7 @@
 
                                     <div class="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
                                         @if (Route::has('password.request'))
-                                            <a class="tp-link text-sm focus:outline-none" href="{{ route('password.request') }}">
+                                            <a class="tp-link text-sm" href="{{ route('password.request') }}">
                                                 {{ __('Forgot your password?') }}
                                             </a>
                                         @endif
@@ -104,13 +116,13 @@
                                 </form>
                             </div>
 
-                            <div x-show="panel === 'register'" x-cloak class="mt-6">
+                            <div id="register-panel" role="tabpanel" aria-labelledby="register-tab" x-show="panel === 'register'" x-cloak class="mt-6">
                                 <div class="mb-6">
                                     <h2 class="font-display text-3xl text-[var(--tp-bark)]">Register</h2>
                                 </div>
 
                                 @if ($errors->getBag('register')->any())
-                                    <div class="mb-4 rounded-[1rem] border border-[rgba(122,74,86,0.18)] bg-[rgba(122,74,86,0.08)] px-4 py-3 text-sm text-[var(--tp-bark)]">
+                                    <div id="home-register-errors" class="mb-4 rounded-[1rem] border border-[var(--tp-error)] bg-[rgba(145,60,25,0.08)] px-4 py-3 text-sm text-[var(--tp-bark)]" role="alert" tabindex="-1" data-error-summary>
                                         <ul class="space-y-1">
                                             @foreach ($errors->getBag('register')->all() as $error)
                                                 <li>{{ $error }}</li>
@@ -125,22 +137,22 @@
 
                                     <div>
                                         <x-input-label for="home_register_name" :value="__('Name')" />
-                                        <x-text-input id="home_register_name" class="mt-2 w-full" type="text" name="name" :value="old('name')" required autocomplete="name" />
+                                        <x-text-input id="home_register_name" class="mt-2 w-full" type="text" name="name" :value="old('name')" required autocomplete="name" :invalid="$errors->getBag('register')->has('name')" error-id="home-register-errors" />
                                     </div>
 
                                     <div>
                                         <x-input-label for="home_register_email" :value="__('Email')" />
-                                        <x-text-input id="home_register_email" class="mt-2 w-full" type="email" name="email" :value="old('auth_panel') === 'register' ? old('email') : ''" required autocomplete="username" />
+                                        <x-text-input id="home_register_email" class="mt-2 w-full" type="email" name="email" :value="old('auth_panel') === 'register' ? old('email') : ''" required autocomplete="username" :invalid="$errors->getBag('register')->has('email')" error-id="home-register-errors" />
                                     </div>
 
                                     <div>
                                         <x-input-label for="home_register_password" :value="__('Password')" />
-                                        <x-text-input id="home_register_password" class="mt-2 w-full" type="password" name="password" required autocomplete="new-password" />
+                                        <x-text-input id="home_register_password" class="mt-2 w-full" type="password" name="password" required autocomplete="new-password" :invalid="$errors->getBag('register')->has('password')" error-id="home-register-errors" />
                                     </div>
 
                                     <div>
                                         <x-input-label for="home_register_password_confirmation" :value="__('Confirm Password')" />
-                                        <x-text-input id="home_register_password_confirmation" class="mt-2 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
+                                        <x-text-input id="home_register_password_confirmation" class="mt-2 w-full" type="password" name="password_confirmation" required autocomplete="new-password" :invalid="$errors->getBag('register')->has('password_confirmation')" error-id="home-register-errors" />
                                     </div>
 
                                     <x-primary-button class="w-full justify-center">

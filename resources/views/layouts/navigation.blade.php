@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="relative z-40 border-b border-[var(--tp-border)] bg-[rgba(245,237,212,0.96)]">
+<nav x-data="{ open: false }" @keydown.escape.window="if (open) { open = false; $nextTick(() => $refs.mobileToggle.focus()); }" class="relative z-40 border-b border-[var(--tp-border)] bg-[rgba(245,237,212,0.96)]" aria-label="Primary navigation">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex min-h-[3.75rem] justify-between gap-4 py-2 md:min-h-20 md:py-4">
             <div class="flex min-w-0 items-center gap-6">
@@ -23,15 +23,15 @@
 
             <div class="hidden md:flex md:items-center md:gap-4">
                 @if (Auth::user()->canAccessAdmin())
-                    <span class="tp-chip text-[var(--tp-brass)]">
+                    <span class="tp-chip text-[var(--tp-text-accent)]">
                         {{ Auth::user()->isAdmin() ? 'Site Admin' : 'Poobah' }}
                     </span>
                 @endif
 
-                <x-dropdown align="right" width="48">
+                <x-dropdown align="right" width="48" id="account-menu">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center gap-3 rounded-full border border-[var(--tp-border)] bg-[rgba(255,252,245,0.94)] px-3 py-2 text-sm font-semibold text-[var(--tp-bark)] shadow-sm transition hover:border-[rgba(221,79,22,0.24)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(239,177,43,0.42)] bg-[rgba(255,252,245,0.96)] font-display text-lg text-[var(--tp-brass)]">
+                        <button type="button" aria-controls="account-menu" :aria-expanded="open.toString()" class="inline-flex items-center gap-3 rounded-full border border-[var(--tp-border)] bg-[rgba(255,252,245,0.94)] px-3 py-2 text-sm font-semibold text-[var(--tp-bark)] shadow-sm transition hover:border-[rgba(221,79,22,0.24)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--tp-text-accent)] bg-[rgba(255,252,245,0.96)] font-display text-lg text-[var(--tp-text-accent)]">
                                 {{ strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}
                             </div>
                             <div class="text-left">
@@ -40,7 +40,7 @@
                             </div>
 
                             <div class="text-[var(--tp-muted)]">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <svg aria-hidden="true" class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </div>
@@ -66,8 +66,8 @@
             </div>
 
             <div class="-me-2 flex items-center md:hidden">
-                <button @click="open = ! open" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--tp-border)] bg-[rgba(247,240,215,0.92)] text-[var(--tp-bark)] transition hover:border-[var(--tp-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]" aria-label="Toggle navigation" :aria-expanded="open.toString()">
-                    <svg class="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                <button x-ref="mobileToggle" @click="open = ! open" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--tp-border)] bg-[rgba(247,240,215,0.92)] text-[var(--tp-bark)] transition hover:border-[var(--tp-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]" aria-label="Toggle navigation" aria-controls="mobile-navigation" :aria-expanded="open.toString()">
+                    <svg aria-hidden="true" class="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -76,7 +76,7 @@
         </div>
     </div>
 
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden md:hidden">
+    <div id="mobile-navigation" :class="{'block': open, 'hidden': ! open}" class="hidden md:hidden">
         <div class="space-y-1 px-4 pb-3 pt-2">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Calendar') }}

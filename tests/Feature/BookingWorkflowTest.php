@@ -25,7 +25,7 @@ class BookingWorkflowTest extends TestCase
         $this->seed(LivingAreaSeeder::class);
     }
 
-    public function test_dashboard_shows_the_date_range_picker(): void
+    public function test_dashboard_shows_separate_arrival_and_departure_fields(): void
     {
         $user = User::factory()->create();
 
@@ -34,7 +34,9 @@ class BookingWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('data-date-range-picker', false)
             ->assertSee('data-calendar-booking-form', false)
-            ->assertSee('Choose arrival and departure')
+            ->assertSee('Arrival date')
+            ->assertSee('Departure date')
+            ->assertSee('MM/DD/YYYY')
             ->assertDontSee('type="date"', false);
     }
 

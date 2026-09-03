@@ -1,7 +1,7 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
-import flatpickr from 'flatpickr';
+import { Calendar } from 'vanilla-calendar-pro';
 
 const flashScrollPositionKey = 'tp:flash-scroll-y';
 
@@ -28,136 +28,107 @@ document.addEventListener('submit', (event) => {
 
 window.Alpine = Alpine;
 
+document.addEventListener('alpine:initialized', () => {
+	window.setTimeout(() => {
+		const errorSummary = Array.from(document.querySelectorAll('[data-error-summary]'))
+			.find((element) => element.getClientRects().length > 0);
+		errorSummary?.focus();
+	}, 100);
+});
+
 Alpine.data('dateRangePicker', ({
 	startValue = '',
 	endValue = '',
-	emptySummary = 'Choose arrival and departure',
+	emptySummary = 'Choose arrival and departure dates',
 	disabledRangesByArea = {},
 	areaInputName = 'living_area_ids[]',
 } = {}) => {
-	let pickerInstance = null;
-	let pickerFooterSummary = null;
-	let pickerDoneButton = null;
-	let pickerBackdrop = null;
-	const twoMonthPickerQuery = window.matchMedia('(min-width: 1024px)');
-	const syncVisibleMonths = () => {
-		if (! pickerInstance) {
-			return;
-		}
-
-		const showMonths = twoMonthPickerQuery.matches ? 2 : 1;
-
-		if (pickerInstance.config.showMonths !== showMonths) {
-			pickerInstance.set('showMonths', showMonths);
-		}
-	};
+	let calendar = null;
 
 	return {
+		activeField: 'start',
 		areaInputs: [],
 		currentUnavailableRanges: [],
 		disabledRangesByArea,
+		endDate: endValue,
 		invalidRangeMessage: '',
-		hasSelection: false,
+		invalidField: '',
 		isOpen: false,
-		summary: emptySummary,
+		pickerStyle: '',
+		startDate: startValue,
 
-		init() {
-			const initialDates = [startValue, endValue].filter(Boolean);
-			this.areaInputs = this.findAreaInputs(areaInputName);
-
-			pickerInstance = flatpickr(this.$refs.display, {
-				mode: 'range',
-				dateFormat: 'Y-m-d',
-				disableMobile: true,
-				disable: this.currentUnavailableRanges,
-				defaultDate: initialDates,
-				closeOnSelect: false,
-				showMonths: twoMonthPickerQuery.matches ? 2 : 1,
-				monthSelectorType: 'static',
-				position: 'auto center',
-				prevArrow: '<span aria-hidden="true">&larr;</span>',
-				nextArrow: '<span aria-hidden="true">&rarr;</span>',
-				onReady: (_selectedDates, _dateString, instance) => {
-					pickerInstance = instance;
-					instance.calendarContainer.classList.add('tp-flatpickr');
-					this.installPickerActions(instance);
-					this.refreshUnavailableRanges(instance);
-					this.syncSelection(instance.selectedDates);
-				},
-				onChange: (selectedDates) => {
-					this.syncSelection(selectedDates);
-				},
-				onOpen: () => {
-					syncVisibleMonths();
-					this.isOpen = true;
-					pickerBackdrop?.classList.add('is-open');
-				},
-				onClose: () => {
-					this.isOpen = false;
-					pickerBackdrop?.classList.remove('is-open');
-					this.updateValidity(pickerInstance?.selectedDates ?? []);
-				},
-				onDestroy: () => {
-					twoMonthPickerQuery.removeEventListener('change', syncVisibleMonths);
-					pickerBackdrop?.remove();
-				},
-			});
-
-			twoMonthPickerQuery.addEventListener('change', syncVisibleMonths);
-
-			this.areaInputs.forEach((input) => {
-				input.addEventListener('change', () => {
-					this.refreshUnavailableRanges();
-				});
-			});
-
-			this.$refs.display.addEventListener('blur', () => {
-				this.updateValidity(pickerInstance?.selectedDates ?? []);
-			});
+		get hasSelection() {
+			return this.startDate !== '' || this.endDate !== '';
 		},
 
-		installPickerActions(instance) {
-			const footer = document.createElement('div');
-			footer.className = 'tp-flatpickr-actions';
-			footer.dataset.datePickerActions = '';
+		get pickerInstruction() {
+			return this.activeField === 'start' ? 'Select an arrival date' : 'Select a departure date';
+		},
 
-			pickerFooterSummary = document.createElement('p');
-			pickerFooterSummary.className = 'tp-flatpickr-actions-summary';
-			pickerFooterSummary.setAttribute('aria-live', 'polite');
+		get pickerTitle() {
+			return this.activeField === 'start' ? 'Choose arrival date' : 'Choose departure date';
+		},
 
-			const controls = document.createElement('div');
-			controls.className = 'tp-flatpickr-actions-controls';
+		get summary() {
+			if (! this.startDate && ! this.endDate) {
+				return emptySummary;
+			}
 
-			const clearButton = document.createElement('button');
-			clearButton.type = 'button';
-			clearButton.className = 'tp-flatpickr-clear';
-			clearButton.dataset.datePickerClear = '';
-			clearButton.textContent = 'Clear';
-			clearButton.addEventListener('click', () => this.clear());
+			if (this.startDate && ! this.endDate) {
+				return 'Arrival selected; choose a departure date';
+			}
 
-			pickerDoneButton = document.createElement('button');
-			pickerDoneButton.type = 'button';
-			pickerDoneButton.className = 'tp-flatpickr-done';
-			pickerDoneButton.dataset.datePickerDone = '';
-			pickerDoneButton.textContent = 'Done';
-			pickerDoneButton.addEventListener('click', () => {
-				if (instance.selectedDates.length === 2 && this.invalidRangeMessage === '') {
-					instance.close();
-					this.$refs.trigger.focus();
+			if (! this.startDate) {
+				return 'Choose an arrival date';
+			}
+
+			const nights = Math.max(0, Math.round((Date.parse(`${this.endDate}T00:00:00Z`) - Date.parse(`${this.startDate}T00:00:00Z`)) / 86400000));
+
+			return `${nights} ${nights === 1 ? 'night' : 'nights'} selected`;
+		},
+
+		init() {
+			this.areaInputs = this.findAreaInputs(areaInputName);
+			this.refreshUnavailableRanges(null, false);
+			calendar = new Calendar(this.$refs.calendar, this.calendarOptions());
+			calendar.init();
+			this.syncFields();
+
+			this.areaInputs.forEach((input) => {
+				input.addEventListener('change', () => this.refreshUnavailableRanges());
+			});
+
+			this.$root.addEventListener('keydown', (event) => {
+				if (event.key === 'Escape' && this.isOpen) {
+					event.stopPropagation();
+					this.close();
 				}
 			});
 
-			controls.append(clearButton, pickerDoneButton);
-			footer.append(pickerFooterSummary, controls);
-			instance.calendarContainer.append(footer);
+			window.addEventListener('resize', () => {
+				if (this.isOpen) {
+					this.positionPicker();
+				}
+			});
+		},
 
-			pickerBackdrop = document.createElement('button');
-			pickerBackdrop.type = 'button';
-			pickerBackdrop.className = 'tp-flatpickr-backdrop';
-			pickerBackdrop.tabIndex = -1;
-			pickerBackdrop.setAttribute('aria-label', 'Close date range picker');
-			pickerBackdrop.addEventListener('click', () => instance.close());
-			document.body.append(pickerBackdrop);
+		calendarOptions() {
+			return {
+				type: 'default',
+				displayMonthsCount: 1,
+				monthsToSwitch: 1,
+				animation: ! window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+				displayDisabledDates: true,
+				enableJumpToSelectedDate: true,
+				selectionDatesMode: 'single',
+				selectedDates: this.selectedDateForActiveField(),
+				disableDates: this.currentUnavailableRanges.map((range) => this.rangeString(range.from, range.to)),
+				onClickDate: (instance) => this.selectCalendarDate(instance.context.selectedDates[0] ?? ''),
+				labels: {
+					application: 'Choose a date',
+					dates: 'Available dates',
+				},
+			};
 		},
 
 		findAreaInputs(areaInputName) {
@@ -170,11 +141,7 @@ Alpine.data('dateRangePicker', ({
 			return Array.from(form.querySelectorAll(`input[name="${areaInputName}"]`));
 		},
 
-		refreshUnavailableRanges(instance = pickerInstance) {
-			if (! instance) {
-				return;
-			}
-
+		refreshUnavailableRanges(instance = calendar, updateCalendar = true) {
 			const selectedAreaIds = this.areaInputs
 				.filter((input) => input.checked)
 				.map((input) => String(input.value));
@@ -193,131 +160,211 @@ Alpine.data('dateRangePicker', ({
 				});
 			});
 
-			instance.set('disable', this.currentUnavailableRanges);
-
-			if (this.selectionConflictsWithUnavailableRange(instance.selectedDates)) {
+			if (this.rangeConflicts(this.startDate, this.endDate)) {
 				this.invalidRangeMessage = 'Those dates are unavailable for one or more selected living areas.';
-				instance.clear();
-				this.syncSelection([]);
-				return;
+				this.invalidField = 'end';
+			} else if (this.invalidRangeMessage.includes('unavailable')) {
+				this.invalidRangeMessage = '';
+				this.invalidField = '';
 			}
 
-			this.invalidRangeMessage = '';
-			this.syncSelection(instance.selectedDates);
-			this.updateValidity(instance.selectedDates);
+			if (instance && updateCalendar) {
+				this.updateCalendar();
+			}
+			this.updateValidity();
 		},
 
-		toggle() {
-			if (! pickerInstance) {
+		toggle(field) {
+			if (this.isOpen && this.activeField === field) {
+				this.close();
 				return;
 			}
 
-			if (pickerInstance.isOpen) {
-				pickerInstance.close();
-				return;
-			}
+			this.open(field);
+		},
 
-			pickerInstance.open();
-			this.$refs.display.focus();
+		open(field) {
+			this.parseField(field);
+			this.activeField = field;
+			this.updateCalendar();
+			this.isOpen = true;
+			this.$nextTick(() => {
+				this.positionPicker();
+				window.setTimeout(() => this.focusCalendar(), 0);
+			});
+		},
+
+		positionPicker() {
+			const anchor = this.activeField === 'start' ? this.$refs.startDisplay : this.$refs.endDisplay;
+			const rootRect = this.$refs.positioningRoot.getBoundingClientRect();
+			const anchorRect = anchor.getBoundingClientRect();
+			const pickerWidth = Math.min(352, rootRect.width);
+			const preferredLeft = this.activeField === 'start'
+				? anchorRect.left - rootRect.left
+				: anchorRect.right - rootRect.left - pickerWidth;
+			const left = Math.max(0, Math.min(preferredLeft, rootRect.width - pickerWidth));
+			const top = anchorRect.bottom - rootRect.top + 8;
+
+			this.pickerStyle = `left: ${left}px; top: ${top}px; margin-top: 0;`;
+		},
+
+		focusCalendar(attempt = 0) {
+			const activeDate = this.$refs.calendar.querySelector('[data-vc-date-btn][tabindex="0"], [data-vc-date-selected] [data-vc-date-btn], [data-vc-date-btn]:not(:disabled)');
+			activeDate?.focus({ preventScroll: true });
+			if (activeDate && document.activeElement !== activeDate && attempt < 3) {
+				window.setTimeout(() => this.focusCalendar(attempt + 1), 25);
+			}
+		},
+
+		close(restoreFocus = true) {
+			this.isOpen = false;
+			this.updateValidity();
+			if (restoreFocus) {
+				const trigger = this.activeField === 'start' ? this.$refs.startTrigger : this.$refs.endTrigger;
+				this.$nextTick(() => trigger.focus());
+			}
 		},
 
 		clear() {
-			if (! pickerInstance) {
-				return;
-			}
-
+			this.startDate = '';
+			this.endDate = '';
 			this.invalidRangeMessage = '';
-			pickerInstance.clear();
-			this.syncSelection([]);
+			this.invalidField = '';
+			this.syncFields();
+			this.updateCalendar();
+			this.$refs.startDisplay.focus();
 		},
 
 		setDates(startDate = '', endDate = '', nextDisabledRangesByArea = disabledRangesByArea) {
-			if (! pickerInstance) {
+			if (! calendar) {
 				return;
 			}
 
 			this.disabledRangesByArea = nextDisabledRangesByArea ?? {};
+			this.startDate = startDate;
+			this.endDate = endDate;
 			this.invalidRangeMessage = '';
-			const dates = [startDate, endDate].filter(Boolean);
-			pickerInstance.close();
-			pickerInstance.setDate(dates, false, 'Y-m-d');
-			this.refreshUnavailableRanges();
+			this.invalidField = '';
+			this.close(false);
+			this.refreshUnavailableRanges(null, false);
+			this.syncFields();
+			this.updateCalendar();
 		},
 
-		syncSelection(selectedDates) {
-			const startDate = selectedDates[0] ?? null;
-			const endDate = selectedDates[1] ?? null;
-			const formattedStartDate = startDate ? pickerInstance.formatDate(startDate, 'Y-m-d') : '';
-			const formattedEndDate = endDate ? pickerInstance.formatDate(endDate, 'Y-m-d') : '';
-
-			this.hasSelection = selectedDates.length > 0;
-			this.$refs.start.value = formattedStartDate;
-			this.$refs.end.value = formattedEndDate;
-			this.$refs.display.value = this.buildDisplayValue(selectedDates);
-			this.summary = this.buildSummary(selectedDates);
-			this.updateValidity(selectedDates);
-			this.updatePickerActions(selectedDates);
+		syncFields() {
+			this.$refs.start.value = this.startDate;
+			this.$refs.end.value = this.endDate;
+			this.$refs.startDisplay.value = this.formatDisplayDate(this.startDate);
+			this.$refs.endDisplay.value = this.formatDisplayDate(this.endDate);
+			this.updateValidity();
 			this.$dispatch('date-range-changed', {
-				startDate: formattedStartDate,
-				endDate: formattedEndDate,
+				startDate: this.startDate,
+				endDate: this.endDate,
 			});
 		},
 
-		updatePickerActions(selectedDates) {
-			if (pickerFooterSummary) {
-				pickerFooterSummary.textContent = selectedDates.length === 0
-					? 'Choose arrival and departure'
-					: this.summary;
+		parseField(field) {
+			const input = field === 'start' ? this.$refs.startDisplay : this.$refs.endDisplay;
+			const value = input.value.trim();
+			if (value === '') {
+				this[field === 'start' ? 'startDate' : 'endDate'] = '';
+				this.invalidRangeMessage = '';
+				this.invalidField = '';
+				this.syncFields();
+				return true;
 			}
 
-			if (pickerDoneButton) {
-				pickerDoneButton.disabled = selectedDates.length !== 2 || this.invalidRangeMessage !== '';
-			}
-		},
-
-		buildDisplayValue(selectedDates) {
-			if (selectedDates.length === 0) {
-				return '';
-			}
-
-			if (selectedDates.length === 1) {
-				return `${this.formatFriendlyDate(selectedDates[0])} to ...`;
-			}
-
-			return `${this.formatFriendlyDate(selectedDates[0])} to ${this.formatFriendlyDate(selectedDates[1])}`;
-		},
-
-		buildSummary(selectedDates) {
-			if (selectedDates.length === 0) {
-				return emptySummary;
-			}
-
-			if (selectedDates.length === 1) {
-				return 'Choose a departure date';
-			}
-
-			const durationInDays = Math.round((selectedDates[1] - selectedDates[0]) / 86400000) + 1;
-
-			return `${durationInDays} ${durationInDays === 1 ? 'night' : 'nights'} selected`;
-		},
-
-		formatFriendlyDate(date) {
-			return pickerInstance.formatDate(date, 'M j, Y');
-		},
-
-		selectionConflictsWithUnavailableRange(selectedDates) {
-			if (selectedDates.length === 0) {
+			const date = this.parseDisplayDate(value);
+			if (! date) {
+				this[field === 'start' ? 'startDate' : 'endDate'] = '';
+				this.invalidRangeMessage = `Enter the ${field === 'start' ? 'arrival' : 'departure'} date as MM/DD/YYYY.`;
+				this.invalidField = field;
+				this.updateValidity();
 				return false;
 			}
 
-			const selectedStart = selectedDates[0].getTime();
-			const selectedEnd = (selectedDates[1] ?? selectedDates[0]).getTime();
+			this[field === 'start' ? 'startDate' : 'endDate'] = date;
+			if (field === 'start' && this.endDate && (this.endDate < date || this.rangeConflicts(date, this.endDate))) {
+				this.endDate = '';
+			}
+			this.invalidRangeMessage = '';
+			this.invalidField = '';
+			this.validateRange();
+			this.syncFields();
+			this.updateCalendar();
+			return this.invalidRangeMessage === '';
+		},
+
+		commitTypedField(field) {
+			if (! this.parseField(field)) {
+				return;
+			}
+
+			if (field === 'start') {
+				this.$refs.endDisplay.focus();
+			} else {
+				this.$refs.endDisplay.blur();
+			}
+		},
+
+		selectCalendarDate(date) {
+			if (! date) {
+				return;
+			}
+
+			if (this.activeField === 'start') {
+				this.startDate = date;
+				if (this.endDate && (this.endDate < date || this.rangeConflicts(date, this.endDate))) {
+					this.endDate = '';
+				}
+			} else {
+				this.endDate = date;
+			}
+
+			this.invalidRangeMessage = '';
+			this.invalidField = '';
+			this.validateRange();
+			this.syncFields();
+
+			if (this.invalidRangeMessage !== '') {
+				return;
+			}
+
+			this.close(false);
+			this.$nextTick(() => {
+				(this.activeField === 'start' ? this.$refs.endDisplay : this.$refs.endDisplay).focus();
+			});
+		},
+
+		validateRange() {
+			if (this.startDate && this.endDate && this.endDate < this.startDate) {
+				this.invalidRangeMessage = 'Departure date must be on or after the arrival date.';
+				this.invalidField = 'end';
+				return false;
+			}
+
+			if (this.rangeConflicts(this.startDate, this.endDate)) {
+				this.invalidRangeMessage = 'Those dates are unavailable for one or more selected living areas.';
+				this.invalidField = this.endDate ? 'end' : 'start';
+				return false;
+			}
+
+			return true;
+		},
+
+		rangeConflicts(startDate, endDate = '') {
+			if (! startDate) {
+				return false;
+			}
+
+			const selectedStart = Date.parse(`${startDate}T00:00:00Z`);
+			const selectedEnd = Date.parse(`${endDate || startDate}T00:00:00Z`);
 
 			return this.currentUnavailableRanges.some((range) => {
-				const blockedStart = flatpickr.parseDate(range.from, 'Y-m-d')?.getTime();
-				const blockedEnd = flatpickr.parseDate(range.to, 'Y-m-d')?.getTime();
+				const blockedStart = Date.parse(`${range.from}T00:00:00Z`);
+				const blockedEnd = Date.parse(`${range.to}T00:00:00Z`);
 
-				if (blockedStart === undefined || blockedEnd === undefined) {
+				if (Number.isNaN(blockedStart) || Number.isNaN(blockedEnd)) {
 					return false;
 				}
 
@@ -325,18 +372,78 @@ Alpine.data('dateRangePicker', ({
 			});
 		},
 
-		updateValidity(selectedDates) {
-			if (this.invalidRangeMessage !== '') {
-				this.$refs.display.setCustomValidity(this.invalidRangeMessage);
+		updateValidity() {
+			const fields = { start: this.$refs.startDisplay, end: this.$refs.endDisplay };
+			Object.values(fields).forEach((field) => {
+				field.setCustomValidity('');
+				field.removeAttribute('aria-invalid');
+			});
+
+			if (this.invalidRangeMessage && fields[this.invalidField]) {
+				fields[this.invalidField].setCustomValidity(this.invalidRangeMessage);
+				fields[this.invalidField].setAttribute('aria-invalid', 'true');
+			}
+		},
+
+		selectedDateForActiveField() {
+			const date = this.activeField === 'start' ? this.startDate : this.endDate;
+			return date ? [date] : [];
+		},
+
+		rangeString(startDate, endDate) {
+			return endDate ? `${startDate}:${endDate}` : startDate;
+		},
+
+		parseDisplayDate(value) {
+			const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+			if (! match) {
+				return '';
+			}
+
+			const isoDate = `${match[3]}-${match[1].padStart(2, '0')}-${match[2].padStart(2, '0')}`;
+			return this.isIsoDate(isoDate) ? isoDate : '';
+		},
+
+		formatDisplayDate(value) {
+			if (! this.isIsoDate(value)) {
+				return '';
+			}
+
+			const [year, month, day] = value.split('-');
+			return `${month}/${day}/${year}`;
+		},
+
+		isIsoDate(value) {
+			const date = new Date(`${value}T00:00:00Z`);
+			return ! Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+		},
+
+		updateCalendar(overrides = {}) {
+			if (! calendar) {
 				return;
 			}
 
-			if (selectedDates.length === 1) {
-				this.$refs.display.setCustomValidity('Choose an end date to complete the range.');
-				return;
-			}
+			calendar.set({
+				...overrides,
+				selectedDates: this.selectedDateForActiveField(),
+				disableDates: this.currentUnavailableRanges.map((range) => this.rangeString(range.from, range.to)),
+			}, { year: true, month: true, dates: true });
+		},
 
-			this.$refs.display.setCustomValidity('');
+		trapPickerFocus(event) {
+			const focusableElements = Array.from(this.$refs.picker.querySelectorAll(
+				'button:not(:disabled), input:not(:disabled), [tabindex]:not([tabindex="-1"])',
+			)).filter((element) => element.getClientRects().length > 0);
+			if (focusableElements.length === 0) return;
+			const firstElement = focusableElements[0];
+			const lastElement = focusableElements.at(-1);
+			if (event.shiftKey && document.activeElement === firstElement) {
+				event.preventDefault();
+				lastElement.focus();
+			} else if (! event.shiftKey && document.activeElement === lastElement) {
+				event.preventDefault();
+				firstElement.focus();
+			}
 		},
 	};
 });
@@ -515,7 +622,8 @@ Alpine.data('calendarBookings', ({
 
 	openModal() {
 		document.body.classList.add('overflow-y-hidden');
-		this.$nextTick(() => this.$refs.closeButton?.focus());
+		document.querySelector('#app-shell')?.setAttribute('inert', '');
+		this.$nextTick(() => this.$refs.modalTitle?.focus());
 	},
 
 	closeModal() {
@@ -526,11 +634,12 @@ Alpine.data('calendarBookings', ({
 		this.mode = null;
 		this.canGoBack = false;
 		document.body.classList.remove('overflow-y-hidden');
+		document.querySelector('#app-shell')?.removeAttribute('inert');
 		this.$nextTick(() => this.triggerElement?.focus());
 	},
 
 	handleEscape() {
-		if (document.querySelector('.tp-flatpickr.open')) {
+		if (document.querySelector('.tp-date-picker-popover:not([style*="display: none"])')) {
 			return;
 		}
 

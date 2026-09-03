@@ -1,15 +1,18 @@
-<x-app-layout>
+<x-app-layout :title="$isAdminView ? 'Administration' : 'Area management'">
     <x-slot name="header">
         <div>
-            <p class="tp-meta text-[var(--tp-brass)]">Admin</p>
-            <h2 class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $isAdminView ? 'Thunderpoint administration' : 'Poobah area management' }}</h2>
+            <p class="tp-meta text-[var(--tp-text-accent)]">Admin</p>
+            <h1 class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $isAdminView ? 'Thunderpoint administration' : 'Poobah area management' }}</h1>
             <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--tp-muted)]">{{ $isAdminView ? 'Approve people and bookings, manage areas, and assign roles.' : 'Review stays for your areas and update their settings.' }}</p>
         </div>
     </x-slot>
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         @php
-            $livingAreaColorMap = $livingAreas->mapWithKeys(fn ($area) => [$area->name => $area->deep_color]);
+            $livingAreaColorMap = $livingAreas->mapWithKeys(fn ($area) => [$area->name => [
+                'background' => $area->deep_color,
+                'foreground' => $area->labelColor(),
+            ]]);
             $paymentLabels = [
                 'unpaid' => 'Pay later',
                 'pending' => 'Payment selected',
@@ -20,13 +23,15 @@
             $completedBookingCount = $bookingGroups->whereIn('status', ['cancelled', 'approved'])->count();
         @endphp
 
+        <x-error-summary :errors="$errors" class="mb-6" />
+
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <section class="space-y-6">
                 <section class="tp-surface p-5 sm:p-6">
                     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
                             <p class="tp-meta">Start here</p>
-                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Bookings to review and update</h3>
+                            <h2 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Bookings to review and update</h2>
                             <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--tp-muted)]">
                                 {{ $isAdminView
                                     ? 'Review booking details first, then approve drafts or update confirmed stays. Area settings stay available in the right column while you work.'
@@ -55,7 +60,7 @@
                     <div class="flex items-end justify-between gap-4">
                         <div>
                             <p class="tp-meta">Booking queue</p>
-                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">All booking groups for this page</h3>
+                            <h2 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">All booking groups for this page</h2>
                         </div>
                         <p class="text-sm leading-6 text-[var(--tp-muted)]">Newest stays and requests appear first.</p>
                     </div>
@@ -65,8 +70,8 @@
                     @forelse ($bookingGroups as $booking)
                         @php
                             $statusClass = match ($booking['status']) {
-                                'active' => 'text-[var(--tp-pine)]',
-                                'mixed' => 'text-[var(--tp-lake)]',
+                                'active' => 'text-[var(--tp-status)]',
+                                'mixed' => 'text-[var(--tp-status)]',
                                 default => 'text-[var(--tp-muted)]',
                             };
                         @endphp
@@ -75,7 +80,7 @@
                                 <div>
                                     <div class="flex flex-wrap gap-2">
                                         @foreach ($booking['areas'] as $areaName)
-                                            <span class="tp-chip border-transparent text-white" style="background-color: {{ $livingAreaColorMap[$areaName] ?? 'var(--tp-brown)' }};">{{ $areaName }}</span>
+                                            <span class="tp-chip border-transparent" style="background-color: {{ $livingAreaColorMap[$areaName]['background'] ?? 'var(--tp-brown-strong)' }}; color: {{ $livingAreaColorMap[$areaName]['foreground'] ?? '#fffdf5' }};">{{ $areaName }}</span>
                                         @endforeach
                                     </div>
 
@@ -120,7 +125,7 @@
                                 </form>
                             @elseif ($booking['status'] === 'active')
                                 <details class="mt-5 rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] px-4 py-4">
-                                    <summary class="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-brass)]"><span class="ml-2">Edit or cancel this stay</span></summary>
+                                    <summary class="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-text-accent)]"><span class="ml-2">Edit or cancel this stay</span></summary>
 
                                     <form method="POST" action="{{ route('admin.bookings.update', $booking['group']) }}" class="mt-4 space-y-4">
                                         @csrf
@@ -147,7 +152,7 @@
                                                 @foreach ($livingAreas as $area)
                                                     <label class="flex items-center gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.8)] px-4 py-3 text-sm font-semibold text-[var(--tp-bark)]">
                                                         <input type="checkbox" name="living_area_ids[]" value="{{ $area->id }}" class="rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] focus:ring-[var(--tp-focus)]" @checked(collect(old('living_area_ids', $booking['area_ids']->all()))->contains($area->id))>
-                                                        <span class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
+                                                        <span aria-hidden="true" class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                                         <span>{{ $area->name }}</span>
                                                     </label>
                                                 @endforeach
@@ -182,11 +187,11 @@
                                     <form method="POST" action="{{ route('admin.bookings.cancel', $booking['group']) }}" class="mt-4">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="inline-flex items-center justify-center rounded-full border border-[rgba(152,97,70,0.24)] bg-[rgba(152,97,70,0.1)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-ember)]">Cancel Stay</button>
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-full border border-[var(--tp-error)] bg-[rgba(145,60,25,0.1)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-error)]">Cancel Stay</button>
                                     </form>
                                 </details>
                             @else
-                                <p class="mt-5 text-sm font-semibold {{ $booking['status'] === 'cancelled' ? 'text-[var(--tp-ember)]' : 'text-[var(--tp-pine)]' }}">
+                                <p class="mt-5 text-sm font-semibold {{ $booking['status'] === 'cancelled' ? 'text-[var(--tp-error)]' : 'text-[var(--tp-status)]' }}">
                                     {{ $booking['status'] === 'cancelled'
                                         ? 'Cancelled '.optional($booking['cancelled_at'])->format('M j, Y g:i a')
                                         : 'Approved '.optional($booking['approved_at'])->format('M j, Y g:i a') }}
@@ -194,7 +199,7 @@
                             @endif
 
                             <details class="mt-5 rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] px-4 py-4">
-                                <summary class="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-brass)]"><span class="ml-2">Booking history</span></summary>
+                                <summary class="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-text-accent)]"><span class="ml-2">Booking history</span></summary>
 
                                 <div class="mt-4 grid gap-4 lg:grid-cols-2">
                                     <div>
@@ -295,12 +300,12 @@
                                                 <div class="flex items-center justify-between gap-3">
                                                     <div>
                                                         <p class="font-semibold text-[var(--tp-bark)]">{{ $area->name }}</p>
-                                                        <p class="tp-meta">Poobah access</p>
+                                                        <label for="role_{{ $managedUser->id }}_{{ $area->id }}" class="tp-meta">Role for {{ $managedUser->name }}</label>
                                                     </div>
-                                                    <span class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
+                                                    <span aria-hidden="true" class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                                 </div>
 
-                                                <select name="role" class="mt-3 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">
+                                                <select id="role_{{ $managedUser->id }}_{{ $area->id }}" name="role" class="mt-3 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-focus-ring)] focus:ring-[var(--tp-focus)]">
                                                     <option value="standard" @selected(! $managedUser->managedAreas->contains('id', $area->id))>Standard</option>
                                                     <option value="poobah" @selected($managedUser->managedAreas->contains('id', $area->id))>Poobah</option>
                                                 </select>
@@ -333,7 +338,7 @@
                             <article class="rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] p-4">
                                 <div class="flex items-center justify-between gap-3">
                                     <h4 class="font-display text-xl text-[var(--tp-bark)]">{{ $area->name }}</h4>
-                                    <span class="inline-flex h-4 w-4 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
+                                    <span aria-hidden="true" class="inline-flex h-4 w-4 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                 </div>
 
                                 <form method="POST" action="{{ route('admin.living-areas.update', $area) }}" class="mt-5 space-y-4">

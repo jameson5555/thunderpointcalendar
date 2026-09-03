@@ -14,6 +14,7 @@ return [
             'slug' => 'boathouse',
             'description' => 'Closest to the dock.',
             'deep_color' => '#ed7009',
+            'label_color' => '#17120f',
             'soft_color' => '#f6d3ae',
         ],
         [
@@ -21,6 +22,7 @@ return [
             'slug' => 'jacks-part',
             'description' => 'Lake-facing rooms and porch.',
             'deep_color' => '#1a8c91',
+            'label_color' => '#17120f',
             'soft_color' => '#c8e5e5',
         ],
         [
@@ -28,6 +30,7 @@ return [
             'slug' => 'joyces-part',
             'description' => 'A quieter corner facing the trees.',
             'deep_color' => '#e7a30f',
+            'label_color' => '#17120f',
             'soft_color' => '#f4dd9e',
         ],
         [
@@ -35,6 +38,7 @@ return [
             'slug' => 'janns-part',
             'description' => 'The wooded side of the point.',
             'deep_color' => '#6f7429',
+            'label_color' => '#fffdf5',
             'soft_color' => '#dbe0b5',
         ],
     ],

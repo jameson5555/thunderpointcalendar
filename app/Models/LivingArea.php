@@ -37,4 +37,12 @@ class LivingArea extends Model
 
         return Arr::get($configArea, 'description', $this->name);
     }
+
+    public function labelColor(): string
+    {
+        $configArea = collect(config('thunderpoint.living_areas'))
+            ->firstWhere('slug', $this->slug);
+
+        return Arr::get($configArea, 'label_color', '#fffdf5');
+    }
 }

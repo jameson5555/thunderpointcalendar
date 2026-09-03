@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Thunderpoint') }}</title>
+        <title>{{ $title }} · {{ config('app.name', 'Thunderpoint') }}</title>
 
         <x-favicon />
 
@@ -16,7 +16,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-[var(--tp-paper)] font-sans antialiased text-[var(--tp-ink)]">
-        <div class="min-h-screen">
+        <a href="#main-content" class="tp-skip-link">Skip to main content</a>
+        <div id="app-shell" class="min-h-screen">
             @include('layouts.navigation')
 
             @isset($header)
@@ -27,7 +28,7 @@
                 </header>
             @endisset
 
-            <main class="pb-8 pt-0 sm:pb-12 sm:pt-2">
+            <main id="main-content" tabindex="-1" class="pb-8 pt-0 sm:pb-12 sm:pt-2">
                 {{ $slot }}
             </main>
         </div>

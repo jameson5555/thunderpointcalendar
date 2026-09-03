@@ -1,18 +1,18 @@
-<x-app-layout>
+<x-app-layout title="Calendar">
     <x-slot name="header">
-        <div class="tp-part-legend" aria-label="Part color legend">
+        <ul class="tp-part-legend" aria-label="Part color legend">
             @foreach ($livingAreas as $area)
                 @php
                     $legendName = str_ends_with($area['name'], ' Part')
                         ? substr($area['name'], 0, -5)
                         : $area['name'];
                 @endphp
-                <span class="tp-part-legend-item">
-                    <span class="h-2 w-2 shrink-0 rounded-full sm:h-2.5 sm:w-2.5" style="background-color: {{ $area['deep_color'] }};"></span>
+                <li class="tp-part-legend-item">
+                    <span aria-hidden="true" class="h-2 w-2 shrink-0 rounded-full sm:h-2.5 sm:w-2.5" style="background-color: {{ $area['deep_color'] }};"></span>
                     <span>{{ $legendName }}</span>
-                </span>
+                </li>
             @endforeach
-        </div>
+        </ul>
     </x-slot>
 
     <div class="mx-auto max-w-7xl px-0 py-2 sm:px-6 sm:py-6 lg:px-8">
@@ -20,7 +20,10 @@
             $monthDate = \Carbon\CarbonImmutable::createFromFormat('F Y', $monthLabel, config('app.timezone'));
             $previousMonth = $monthDate->subMonth()->format('Y-m');
             $nextMonth = $monthDate->addMonth()->format('Y-m');
-            $livingAreaColorMap = $livingAreas->mapWithKeys(fn ($area) => [$area->name => $area->deep_color]);
+            $livingAreaColorMap = $livingAreas->mapWithKeys(fn ($area) => [$area->name => [
+                'background' => $area->deep_color,
+                'foreground' => $area->labelColor(),
+            ]]);
             $paymentLabels = [
                 'unpaid' => 'Pay later',
                 'pending' => 'Payment selected',
@@ -67,7 +70,7 @@
                                 </svg>
                             </a>
 
-                            <h2 class="text-center font-display text-xl text-[var(--tp-bark)] md:text-3xl">{{ $monthLabel }}</h2>
+                            <h1 class="text-center font-display text-xl text-[var(--tp-bark)] md:text-3xl">{{ $monthLabel }}</h1>
 
                             <a href="{{ route('dashboard', ['month' => $nextMonth]) }}" class="tp-calendar-nav-button justify-self-end" aria-label="View next month">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -105,7 +108,7 @@
                                                     @click="openDay(@js($day['date']->toDateString()), @js($day['bookingGroups']), $el)"
                                                 >
                                                     <div class="flex items-center justify-between gap-2">
-                                                        <span class="text-xs font-semibold tabular-nums md:text-sm {{ $day['isToday'] ? 'text-[var(--tp-brass)]' : 'text-[var(--tp-bark)]' }}">{{ $day['date']->day }}</span>
+                                                        <span class="text-xs font-semibold tabular-nums md:text-sm {{ $day['isToday'] ? 'text-[var(--tp-text-accent)]' : 'text-[var(--tp-bark)]' }}">{{ $day['date']->day }}</span>
                                                         @if (! $day['isToday'])
                                                             <span class="text-base font-semibold text-[var(--tp-accent)] opacity-0 transition group-hover:opacity-100 group-focus:opacity-100" aria-hidden="true">+</span>
                                                         @endif
@@ -123,6 +126,7 @@
                                                             class="pointer-events-auto w-full truncate rounded-full text-left focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-1 {{ $segment['style'] }}"
                                                             style="grid-column: {{ $segment['column_start'] }} / {{ $segment['column_end'] }}; grid-row: {{ $segment['lane'] }}; {{ $segment['inline_style'] }}"
                                                             title="{{ $segment['title'] }}"
+                                                            aria-label="{{ $segment['status_label'] }} booking for {{ $segment['guest_name'] }} in {{ $segment['area_name'] }}, {{ $segment['start_date'] }} to {{ $segment['end_date'] }}"
                                                             aria-haspopup="dialog"
                                                             data-calendar-booking-trigger
                                                             data-booking-group="{{ $segment['booking_group'] }}"
@@ -147,11 +151,12 @@
                     </div>
                 </section>
 
+                <template x-teleport="body">
                 <div
                     x-cloak
                     x-show="mode !== null"
                     @keydown.escape.window="handleEscape()"
-                    class="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center sm:p-6"
+                    class="fixed inset-0 z-50 flex items-end px-4 sm:items-center sm:justify-center sm:p-6"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="calendar-modal-title"
@@ -159,7 +164,7 @@
                 >
                     <button type="button" class="absolute inset-0 bg-[rgba(78,59,46,0.55)]" aria-label="Close calendar dialog" data-calendar-modal-backdrop @click="closeModal()"></button>
 
-                    <div x-ref="dialog" class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-[var(--tp-paper-soft)] shadow-2xl sm:max-h-[90vh] sm:max-w-2xl sm:rounded-[1.5rem]" @keydown.tab="trapFocus($event)">
+                    <div x-ref="dialog" class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-[var(--tp-paper-soft)] shadow-2xl sm:max-h-[90vh] sm:max-w-4xl sm:rounded-[1.5rem]" @keydown.tab="trapFocus($event)">
                         <header class="flex shrink-0 items-start justify-between gap-4 border-b border-[var(--tp-border)] px-5 py-4 sm:px-6">
                             <div class="flex min-w-0 items-start gap-3">
                                 <button x-show="canGoBack" type="button" class="tp-calendar-nav-button -ml-2 shrink-0" aria-label="Back to day agenda" @click="backToAgenda()">
@@ -169,7 +174,7 @@
                                 </button>
                                 <div class="min-w-0">
                                     <p class="tp-meta" x-text="mode === 'agenda' ? 'Day agenda' : (mode === 'view' ? 'Booking details' : (form.isEdit ? 'Edit booking' : 'New booking'))"></p>
-                                    <h2 id="calendar-modal-title" class="mt-1 truncate font-display text-2xl text-[var(--tp-bark)]" x-text="modalTitle"></h2>
+                                    <h2 x-ref="modalTitle" id="calendar-modal-title" tabindex="-1" class="mt-1 truncate font-display text-2xl text-[var(--tp-bark)]" x-text="modalTitle"></h2>
                                 </div>
                             </div>
                             <button x-ref="closeButton" type="button" class="tp-calendar-nav-button shrink-0" aria-label="Close calendar dialog" data-calendar-modal-close @click="closeModal()">
@@ -199,7 +204,7 @@
                                             <div class="mt-3 flex flex-wrap gap-2">
                                                 <template x-for="area in booking.areas" :key="area.name">
                                                     <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--tp-muted)]">
-                                                        <span class="h-2.5 w-2.5 rounded-full" :style="`background-color: ${area.color}`"></span>
+                                                        <span aria-hidden="true" class="h-2.5 w-2.5 rounded-full" :style="`background-color: ${area.color}`"></span>
                                                         <span x-text="area.name"></span>
                                                     </span>
                                                 </template>
@@ -212,7 +217,7 @@
                             <section x-show="mode === 'view'" data-calendar-booking-details>
                                 <div class="flex flex-wrap gap-2">
                                     <template x-for="area in (selectedBooking?.areas ?? [])" :key="area.name">
-                                        <span class="tp-chip border-transparent text-white" :style="`background-color: ${area.color}`" x-text="area.name"></span>
+                                        <span class="tp-chip border-transparent" :style="`background-color: ${area.color}; color: ${area.labelColor}`" x-text="area.name"></span>
                                     </template>
                                 </div>
                                 <dl class="mt-5 space-y-3 text-sm">
@@ -235,7 +240,11 @@
                                 <input type="hidden" name="form_context" :value="form.isEdit ? 'calendar-edit' : 'calendar-create'">
                                 <input type="hidden" name="editing_group" :value="form.group" :disabled="! form.isEdit">
 
-                                <fieldset>
+                                @if ($errors->any())
+                                    <x-error-summary :errors="$errors" class="mb-5" />
+                                @endif
+
+                                <fieldset @if ($errors->has('living_area_ids') || $errors->has('living_area_ids.*')) aria-describedby="calendar_living_areas_error" @endif>
                                     <legend class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--tp-muted)]">Parts</legend>
                                     <p class="mt-1 text-xs text-[var(--tp-muted)]" x-text="form.lockAreas ? 'Poobahs cannot change the parts on a confirmed stay.' : 'Choose one or more.'"></p>
                                     <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -243,7 +252,7 @@
                                             <label class="flex min-h-12 items-center gap-2 rounded-[0.9rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.84)] px-3 py-2.5 shadow-sm transition hover:border-[var(--tp-border-strong)]">
                                                 <input type="checkbox" name="living_area_ids[]" value="{{ $area->id }}" x-model="form.areaIds" :disabled="form.lockAreas" class="h-4 w-4 shrink-0 rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] focus:ring-[var(--tp-focus)]">
                                                 <span class="min-w-0 truncate text-sm font-semibold text-[var(--tp-bark)]">
-                                                    <span class="mr-1 inline-flex h-3 w-3 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
+                                                    <span aria-hidden="true" class="mr-1 inline-flex h-3 w-3 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                                     {{ str_ends_with($area->name, ' Part') ? substr($area->name, 0, -5) : $area->name }}
                                                 </span>
                                             </label>
@@ -256,11 +265,13 @@
                                             </template>
                                         </div>
                                     </template>
+                                    <x-input-error id="calendar_living_areas_error" :messages="$errors->get('living_area_ids')" class="mt-2" />
                                 </fieldset>
 
                                 <div>
                                     <x-input-label for="calendar_guest_name" :value="__('Guest Name')" />
-                                    <x-text-input id="calendar_guest_name" name="guest_name" type="text" class="mt-2 w-full" x-model="form.guestName" required />
+                                    <x-text-input id="calendar_guest_name" name="guest_name" type="text" class="mt-2 w-full" x-model="form.guestName" required :invalid="$errors->has('guest_name')" error-id="calendar_guest_name_error" />
+                                    <x-input-error id="calendar_guest_name_error" :messages="$errors->get('guest_name')" class="mt-2" />
                                 </div>
 
                                 <x-date-range-picker
@@ -269,8 +280,11 @@
                                     start-name="start_date"
                                     end-name="end_date"
                                     :disabled-ranges-by-area="$unavailableDateRangesByArea"
+                                    :invalid="$errors->has('start_date') || $errors->has('end_date')"
+                                    error-id="calendar_booking_dates_error"
                                     required
                                 />
+                                <x-input-error id="calendar_booking_dates_error" :messages="array_merge($errors->get('start_date'), $errors->get('end_date'))" class="mt-2" />
 
                                 <div>
                                     <x-input-label for="calendar_note" :value="__('Note')" />
@@ -316,6 +330,7 @@
                         </div>
                     </div>
                 </div>
+                </template>
 
                 <section class="tp-surface px-5 py-6 sm:p-6" data-your-bookings>
                     <h2 class="font-display text-2xl text-[var(--tp-bark)]">Your bookings</h2>
@@ -327,7 +342,7 @@
                                     <div class="space-y-3">
                                         <div class="flex flex-wrap gap-2">
                                             @foreach ($booking['areas'] as $areaName)
-                                                <span class="tp-chip border-transparent text-white" style="background-color: {{ $livingAreaColorMap[$areaName] ?? 'var(--tp-brown)' }};">{{ $areaName }}</span>
+                                                <span class="tp-chip border-transparent" style="background-color: {{ $livingAreaColorMap[$areaName]['background'] ?? 'var(--tp-brown-strong)' }}; color: {{ $livingAreaColorMap[$areaName]['foreground'] ?? '#fffdf5' }};">{{ $areaName }}</span>
                                             @endforeach
                                         </div>
                                         <div>
@@ -342,7 +357,7 @@
                                     <div class="min-w-56 space-y-2 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] p-4">
                                         <div class="flex items-center justify-between gap-2">
                                             <span class="tp-meta">Status</span>
-                                            <span class="text-xs font-semibold uppercase tracking-[0.16em] {{ $booking['status'] === 'active' ? 'text-[var(--tp-pine)]' : 'rounded-full border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.72)] px-3 py-2 text-[var(--tp-muted)]' }}">{{ ucfirst($booking['status']) }}</span>
+                                            <span class="text-xs font-semibold uppercase tracking-[0.16em] {{ $booking['status'] === 'active' ? 'text-[var(--tp-status)]' : 'rounded-full border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.72)] px-3 py-2 text-[var(--tp-muted)]' }}">{{ ucfirst($booking['status']) }}</span>
                                         </div>
                                         <div class="flex items-center justify-between gap-2">
                                             <span class="tp-meta">Amount</span>

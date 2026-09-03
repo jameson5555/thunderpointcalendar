@@ -314,7 +314,8 @@ class AdminBookingApprovalTest extends TestCase
             ->get(route('admin.index'))
             ->assertOk()
             ->assertSee('data-date-range-picker', false)
-            ->assertSee('Choose arrival and departure')
+            ->assertSee('Arrival date')
+            ->assertSee('Departure date')
             ->assertDontSee('type="date"', false);
 
         $response = $this->actingAs($admin)->patch(route('admin.bookings.update', 'editable-group'), [
