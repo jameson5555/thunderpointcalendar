@@ -39,7 +39,6 @@ document.addEventListener('alpine:initialized', () => {
 Alpine.data('dateRangePicker', ({
 	startValue = '',
 	endValue = '',
-	emptySummary = 'Choose arrival and departure dates',
 	disabledRangesByArea = {},
 	areaInputName = 'living_area_ids[]',
 } = {}) => {
@@ -57,34 +56,8 @@ Alpine.data('dateRangePicker', ({
 		pickerStyle: '',
 		startDate: startValue,
 
-		get hasSelection() {
-			return this.startDate !== '' || this.endDate !== '';
-		},
-
-		get pickerInstruction() {
-			return this.activeField === 'start' ? 'Select an arrival date' : 'Select a departure date';
-		},
-
 		get pickerTitle() {
 			return this.activeField === 'start' ? 'Choose arrival date' : 'Choose departure date';
-		},
-
-		get summary() {
-			if (! this.startDate && ! this.endDate) {
-				return emptySummary;
-			}
-
-			if (this.startDate && ! this.endDate) {
-				return 'Arrival selected; choose a departure date';
-			}
-
-			if (! this.startDate) {
-				return 'Choose an arrival date';
-			}
-
-			const nights = Math.max(0, Math.round((Date.parse(`${this.endDate}T00:00:00Z`) - Date.parse(`${this.startDate}T00:00:00Z`)) / 86400000));
-
-			return `${nights} ${nights === 1 ? 'night' : 'nights'} selected`;
 		},
 
 		init() {
@@ -223,16 +196,6 @@ Alpine.data('dateRangePicker', ({
 				const trigger = this.activeField === 'start' ? this.$refs.startTrigger : this.$refs.endTrigger;
 				this.$nextTick(() => trigger.focus());
 			}
-		},
-
-		clear() {
-			this.startDate = '';
-			this.endDate = '';
-			this.invalidRangeMessage = '';
-			this.invalidField = '';
-			this.syncFields();
-			this.updateCalendar();
-			this.$refs.startDisplay.focus();
 		},
 
 		setDates(startDate = '', endDate = '', nextDisabledRangesByArea = disabledRangesByArea) {
@@ -489,7 +452,7 @@ Alpine.data('calendarBookings', ({
 			return this.selectedBooking?.guestName ?? 'Booking';
 		}
 
-		return this.form.isEdit ? this.form.guestName : 'Book dates';
+		return this.form.isEdit ? this.form.guestName : 'Book your stay';
 	},
 
 	init() {

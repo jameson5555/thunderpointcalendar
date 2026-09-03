@@ -37,6 +37,8 @@ class BookingWorkflowTest extends TestCase
             ->assertSee('Arrival date')
             ->assertSee('Departure date')
             ->assertSee('MM/DD/YYYY')
+            ->assertDontSee('Arrival selected; choose a departure date')
+            ->assertDontSee('Clear dates')
             ->assertDontSee('type="date"', false);
     }
 

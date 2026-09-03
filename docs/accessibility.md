@@ -22,7 +22,7 @@ Use the semantic CSS tokens `--tp-error`, `--tp-status`, `--tp-link`, `--tp-text
 - Validation errors use stable IDs, `aria-invalid`, `aria-describedby`, a focusable error summary, and field-level guidance. Errors use `role="alert"`; successful asynchronous notices use `role="status"`. Do not nest or duplicate live regions.
 - Menus expose `aria-expanded` and `aria-controls`, close with Escape, and restore focus to their trigger.
 - Modal dialogs have a programmatic name and modal state, contain focus, close with Escape, make background content inert, and restore focus. Initial focus belongs on a useful heading or the first field requiring action.
-- Stay dates use separately labeled Arrival date and Departure date fields. Each accepts `MM/DD/YYYY` and has its own button for the shared Vanilla Calendar Pro popup. The popup follows grid keyboard behavior, disables unavailable dates, rejects ranges crossing them, announces the selection summary, and returns focus on close. Preserve the hidden `start_date` and `end_date` ISO fields used by the backend.
+- Stay dates use separately labeled Arrival date and Departure date fields. Each accepts `MM/DD/YYYY` and has its own button for the shared Vanilla Calendar Pro popup. The popup follows grid keyboard behavior, disables unavailable dates, rejects ranges crossing them, and returns focus on close. Preserve the hidden `start_date` and `end_date` ISO fields used by the backend.
 - Interactive controls should retain a 44 by 44 CSS-pixel target where practical. Calendar booking bars may be 24 pixels high when spacing prevents adjacent-target interference.
 - New animation must honor `prefers-reduced-motion`. New custom colors and boundaries must remain discernible in forced-colors mode.
 

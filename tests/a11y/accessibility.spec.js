@@ -171,10 +171,14 @@ test('date picker stays within a narrow booking dialog', async ({ page }) => {
     const bookingDialogBox = await bookingDialogPanel.boundingBox();
     expect(bookingDialogBox.x).toBeGreaterThanOrEqual(16);
     expect(bookingDialogBox.x + bookingDialogBox.width).toBeLessThanOrEqual(304);
+    const mobileArrivalInputBox = await page.getByRole('textbox', { name: 'Arrival date' }).boundingBox();
+    const mobileDepartureInputBox = await page.getByRole('textbox', { name: 'Departure date' }).boundingBox();
+    expect(Math.abs(mobileArrivalInputBox.y - mobileDepartureInputBox.y)).toBeLessThanOrEqual(2);
     await page.getByRole('button', { name: 'Choose arrival date from calendar' }).click();
 
     const picker = page.locator('#calendar_booking_dates__picker');
     await expect(picker.locator('[role="grid"]')).toHaveCount(1);
+    await expect(picker).toBeVisible();
     const pickerBox = await picker.boundingBox();
     const arrivalInputBox = await page.getByRole('textbox', { name: 'Arrival date' }).boundingBox();
     expect(pickerBox.x).toBeGreaterThanOrEqual(0);
@@ -187,9 +191,11 @@ test('date picker stays within a narrow booking dialog', async ({ page }) => {
 
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Choose departure date from calendar' }).click();
+    await expect(picker).toBeVisible();
     const departurePickerBox = await picker.boundingBox();
     const departureInputBox = await page.getByRole('textbox', { name: 'Departure date' }).boundingBox();
-    expect(Math.abs((departurePickerBox.x + departurePickerBox.width) - (departureInputBox.x + departureInputBox.width))).toBeLessThanOrEqual(2);
+    const departureControlBox = await page.locator('.tp-date-control').filter({ has: page.getByRole('textbox', { name: 'Departure date' }) }).boundingBox();
+    expect(Math.abs((departurePickerBox.x + departurePickerBox.width) - (departureControlBox.x + departureControlBox.width))).toBeLessThanOrEqual(2);
     expect(departurePickerBox.y - (departureInputBox.y + departureInputBox.height)).toBeGreaterThanOrEqual(6);
     expect(departurePickerBox.y - (departureInputBox.y + departureInputBox.height)).toBeLessThanOrEqual(12);
 });

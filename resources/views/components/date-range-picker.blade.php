@@ -5,7 +5,6 @@
     'endName' => 'end_date',
     'startValue' => '',
     'endValue' => '',
-    'emptySummary' => 'Choose arrival and departure dates',
     'disabledRangesByArea' => [],
     'areaInputName' => 'living_area_ids[]',
     'required' => false,
@@ -14,19 +13,17 @@
 ])
 
 @php
-    $summaryId = $id.'__summary';
     $hintId = $id.'__hint';
     $pickerId = $id.'__picker';
     $pickerTitleId = $id.'__picker_title';
     $clientErrorId = $id.'__client_error';
-    $describedBy = collect([$hintId, $summaryId, $clientErrorId, $errorId])->filter()->implode(' ');
+    $describedBy = collect([$hintId, $clientErrorId, $errorId])->filter()->implode(' ');
 @endphp
 
 <fieldset
     x-data="dateRangePicker({
         startValue: @js($startValue),
         endValue: @js($endValue),
-        emptySummary: @js($emptySummary),
         disabledRangesByArea: @js($disabledRangesByArea),
         areaInputName: @js($areaInputName),
     })"
@@ -35,19 +32,20 @@
     class="space-y-2"
     data-date-range-picker
 >
-    <legend class="text-sm font-medium text-[var(--tp-bark)]">{{ $label }}</legend>
+    <legend class="sr-only">{{ $label }}</legend>
 
     <div x-ref="positioningRoot" class="relative space-y-2">
-    <div class="tp-date-fields mt-2">
+    <div class="tp-date-fields">
         <div>
-            <x-input-label :for="$id.'_start_display'" value="Arrival date" />
-            <div class="relative mt-1">
+            <x-input-label :for="$id.'_start_display'" value="Arrive" />
+            <div class="tp-date-control mt-1">
                 <input
                     x-ref="startDisplay"
                     id="{{ $id }}_start_display"
                     type="text"
-                    class="tp-date-range-input w-full"
+                    class="tp-date-range-input"
                     placeholder="MM/DD/YYYY"
+                    aria-label="Arrival date"
                     autocomplete="off"
                     inputmode="numeric"
                     aria-describedby="{{ $describedBy }}"
@@ -61,7 +59,7 @@
                 <button
                     x-ref="startTrigger"
                     type="button"
-                    class="tp-date-range-trigger absolute right-3 top-1/2 -translate-y-1/2"
+                    class="tp-date-range-trigger"
                     @click="toggle('start')"
                     aria-label="Choose arrival date from calendar"
                     aria-controls="{{ $pickerId }}"
@@ -75,14 +73,15 @@
         </div>
 
         <div>
-            <x-input-label :for="$id.'_end_display'" value="Departure date" />
-            <div class="relative mt-1">
+            <x-input-label :for="$id.'_end_display'" value="Depart" />
+            <div class="tp-date-control mt-1">
                 <input
                     x-ref="endDisplay"
                     id="{{ $id }}_end_display"
                     type="text"
-                    class="tp-date-range-input w-full"
+                    class="tp-date-range-input"
                     placeholder="MM/DD/YYYY"
+                    aria-label="Departure date"
                     autocomplete="off"
                     inputmode="numeric"
                     aria-describedby="{{ $describedBy }}"
@@ -96,7 +95,7 @@
                 <button
                     x-ref="endTrigger"
                     type="button"
-                    class="tp-date-range-trigger absolute right-3 top-1/2 -translate-y-1/2"
+                    class="tp-date-range-trigger"
                     @click="toggle('end')"
                     aria-label="Choose departure date from calendar"
                     aria-controls="{{ $pickerId }}"
@@ -110,7 +109,7 @@
         </div>
     </div>
 
-    <p id="{{ $hintId }}" class="text-xs text-[var(--tp-muted)]">Enter each date as MM/DD/YYYY, or use its calendar button.</p>
+    <p id="{{ $hintId }}" class="sr-only">Enter each date as MM/DD/YYYY, or use its calendar button.</p>
 
     <div
         x-cloak
@@ -129,23 +128,8 @@
             <div x-ref="calendar"></div>
         </div>
         <div class="tp-date-picker-actions">
-            <p class="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--tp-muted)]" x-text="pickerInstruction"></p>
             <button type="button" class="tp-button-ghost min-h-11 px-3 py-2 text-xs" @click="close()">Close</button>
         </div>
-    </div>
-
-    <div class="flex items-center justify-between gap-3">
-        <p id="{{ $summaryId }}" class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--tp-muted)]" aria-live="polite" x-text="summary"></p>
-
-        <button
-            type="button"
-            class="tp-button-ghost px-3 py-1.5 text-xs uppercase tracking-[0.12em]"
-            x-cloak
-            x-show="hasSelection"
-            @click="clear()"
-        >
-            Clear dates
-        </button>
     </div>
 
     <p id="{{ $clientErrorId }}" class="text-sm text-[var(--tp-error)]" role="alert" x-show="invalidRangeMessage !== ''" x-text="invalidRangeMessage"></p>

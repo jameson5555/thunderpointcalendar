@@ -164,7 +164,7 @@
                 >
                     <button type="button" class="absolute inset-0 bg-[rgba(78,59,46,0.55)]" aria-label="Close calendar dialog" data-calendar-modal-backdrop @click="closeModal()"></button>
 
-                    <div x-ref="dialog" class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-[var(--tp-paper-soft)] shadow-2xl sm:max-h-[90vh] sm:max-w-4xl sm:rounded-[1.5rem]" @keydown.tab="trapFocus($event)">
+                    <div x-ref="dialog" class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-[var(--tp-paper-soft)] shadow-2xl sm:max-h-[90vh] sm:max-w-2xl sm:rounded-[1.5rem]" @keydown.tab="trapFocus($event)">
                         <header class="flex shrink-0 items-start justify-between gap-4 border-b border-[var(--tp-border)] px-5 py-4 sm:px-6">
                             <div class="flex min-w-0 items-start gap-3">
                                 <button x-show="canGoBack" type="button" class="tp-calendar-nav-button -ml-2 shrink-0" aria-label="Back to day agenda" @click="backToAgenda()">
@@ -173,8 +173,8 @@
                                     </svg>
                                 </button>
                                 <div class="min-w-0">
-                                    <p class="tp-meta" x-text="mode === 'agenda' ? 'Day agenda' : (mode === 'view' ? 'Booking details' : (form.isEdit ? 'Edit booking' : 'New booking'))"></p>
-                                    <h2 x-ref="modalTitle" id="calendar-modal-title" tabindex="-1" class="mt-1 truncate font-display text-2xl text-[var(--tp-bark)]" x-text="modalTitle"></h2>
+                                    <p x-show="mode !== 'form'" class="tp-meta" x-text="mode === 'agenda' ? 'Day agenda' : 'Booking details'"></p>
+                                    <h2 x-ref="modalTitle" id="calendar-modal-title" tabindex="-1" class="truncate font-display text-2xl text-[var(--tp-bark)]" :class="mode === 'form' ? '' : 'mt-1'" x-text="modalTitle"></h2>
                                 </div>
                             </div>
                             <button x-ref="closeButton" type="button" class="tp-calendar-nav-button shrink-0" aria-label="Close calendar dialog" data-calendar-modal-close @click="closeModal()">
