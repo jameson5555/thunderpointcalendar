@@ -107,6 +107,11 @@
 		box-shadow: 0 0 0 3px var(--tp-focus);
 	}
 
+	.tp-calendar-week {
+		height: var(--tp-calendar-week-min-height);
+		min-width: 0;
+	}
+
 	.tp-surface {
 		@apply rounded-[1.5rem] border-2;
 		border-color: var(--tp-ember);
@@ -220,6 +225,12 @@
 	}
 
 	@media (min-width: 640px) {
+		.tp-calendar-week {
+			height: auto;
+			aspect-ratio: 9 / 1;
+			min-height: var(--tp-calendar-week-min-height);
+		}
+
 		.tp-part-legend {
 			@apply gap-2;
 		}

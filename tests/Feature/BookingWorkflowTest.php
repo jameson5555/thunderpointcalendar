@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Mail\DraftBookingSubmittedMail;
-use App\Models\BookingActivityLog;
 use App\Models\Booking;
+use App\Models\BookingActivityLog;
 use App\Models\LivingArea;
 use App\Models\NotificationLog;
 use App\Models\User;
@@ -76,6 +76,53 @@ class BookingWorkflowTest extends TestCase
                 ->assertSee($area->name)
                 ->assertSee('Sep 10, 2026')
                 ->assertSee('Sep 12, 2026');
+        } finally {
+            CarbonImmutable::setTestNow();
+        }
+    }
+
+    public function test_your_bookings_excludes_stays_that_ended_before_today(): void
+    {
+        CarbonImmutable::setTestNow('2026-09-03 12:00:00');
+
+        try {
+            $user = User::factory()->create();
+            $area = LivingArea::query()->firstOrFail();
+            $defaults = [
+                'living_area_id' => $area->id,
+                'created_by' => $user->id,
+                'status' => Booking::STATUS_ACTIVE,
+                'amount_cents' => 6000,
+                'payment_status' => Booking::PAYMENT_SUBMITTED,
+                'payment_method' => 'paypal',
+            ];
+
+            Booking::query()->create($defaults + [
+                'booking_group' => 'past-stay',
+                'guest_name' => 'Past Stay',
+                'start_date' => '2026-08-30',
+                'end_date' => '2026-09-02',
+            ]);
+            Booking::query()->create($defaults + [
+                'booking_group' => 'ending-today',
+                'guest_name' => 'Ending Today',
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-09-03',
+            ]);
+            Booking::query()->create($defaults + [
+                'booking_group' => 'future-stay',
+                'guest_name' => 'Future Stay',
+                'start_date' => '2026-09-10',
+                'end_date' => '2026-09-12',
+            ]);
+
+            $response = $this->actingAs($user)->get(route('dashboard'));
+            $bookingGroups = $response->viewData('myBookings')->pluck('group');
+
+            $response->assertOk();
+            $this->assertNotContains('past-stay', $bookingGroups);
+            $this->assertContains('ending-today', $bookingGroups);
+            $this->assertContains('future-stay', $bookingGroups);
         } finally {
             CarbonImmutable::setTestNow();
         }

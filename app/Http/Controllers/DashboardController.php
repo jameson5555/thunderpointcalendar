@@ -6,8 +6,8 @@ use App\Models\Booking;
 use App\Models\LivingArea;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -54,6 +54,7 @@ class DashboardController extends Controller
         $myBookings = Booking::query()
             ->with('livingArea')
             ->where('created_by', $user->id)
+            ->whereDate('end_date', '>=', $today->toDateString())
             ->orderByDesc('start_date')
             ->get()
             ->groupBy(fn (Booking $booking) => $booking->booking_group ?: (string) $booking->id)

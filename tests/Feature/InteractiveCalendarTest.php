@@ -39,7 +39,8 @@ class InteractiveCalendarTest extends TestCase
                 ->assertSee('data-calendar-date="2026-08-30"', false)
                 ->assertSee('View 1 bookings on September 10, 2026')
                 ->assertSee('data-calendar-day-agenda', false)
-                ->assertSee('data-new-booking', false);
+                ->assertSee('data-new-booking', false)
+                ->assertSeeInOrder(['data-calendar-week', 'data-new-booking'], false);
         } finally {
             CarbonImmutable::setTestNow();
         }
