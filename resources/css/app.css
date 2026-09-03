@@ -126,14 +126,14 @@
 
 	.tp-surface {
 		@apply rounded-[1.5rem] border-2;
-		border-color: var(--tp-surface-border);
+		border-color: var(--tp-ember);
 		background: rgba(255, 252, 245, 0.94);
 		box-shadow: none;
 	}
 
 	.tp-surface-subtle {
 		@apply rounded-[1.25rem] border-2;
-		border-color: var(--tp-gold-solid);
+		border-color: var(--tp-sand);
 		background: rgba(255, 252, 245, 0.94);
 	}
 
