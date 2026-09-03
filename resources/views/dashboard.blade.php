@@ -59,15 +59,15 @@
             data-dashboard-layout
         >
                 <section class="px-3 sm:px-0" data-calendar-overview>
-                    <div class="tp-surface overflow-hidden rounded-none sm:rounded-[1.5rem]">
-                        <div class="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 border-b border-[var(--tp-border)] px-3 py-2.5 sm:grid-cols-[3rem_minmax(0,1fr)_3rem] sm:px-5 sm:py-4">
+                    <div class="tp-calendar-surface tp-surface overflow-hidden rounded-[1.5rem]">
+                        <div class="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 border-b border-[var(--tp-border)] px-3 py-2.5 md:grid-cols-[3rem_minmax(0,1fr)_3rem] md:px-5 md:py-4">
                             <a href="{{ route('dashboard', ['month' => $previousMonth]) }}" class="tp-calendar-nav-button" aria-label="View previous month">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                             </a>
 
-                            <h2 class="text-center font-display text-xl text-[var(--tp-bark)] sm:text-3xl">{{ $monthLabel }}</h2>
+                            <h2 class="text-center font-display text-xl text-[var(--tp-bark)] md:text-3xl">{{ $monthLabel }}</h2>
 
                             <a href="{{ route('dashboard', ['month' => $nextMonth]) }}" class="tp-calendar-nav-button justify-self-end" aria-label="View next month">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -79,9 +79,9 @@
 
                         <div>
                             <div>
-                                <div class="grid grid-cols-7 border-b border-[var(--tp-border)] bg-[rgba(247,240,215,0.72)] text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--tp-muted)] sm:text-xs sm:tracking-[0.18em]">
+                                <div class="grid grid-cols-7 border-b border-[var(--tp-border)] bg-[rgba(247,240,215,0.72)] text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--tp-muted)] md:text-xs md:tracking-[0.18em]">
                                     @foreach ($weekdays as $weekday)
-                                        <div class="px-1 py-2 sm:px-2 sm:py-3">{{ $weekday }}</div>
+                                        <div class="px-1 py-2 md:px-2 md:py-3">{{ $weekday }}</div>
                                     @endforeach
                                 </div>
 
@@ -97,7 +97,7 @@
                                             @foreach ($week['days'] as $day)
                                                 <button
                                                     type="button"
-                                                    class="group flex h-full items-start justify-start border-r border-[rgba(103,71,43,0.08)] px-2 py-2 text-left transition last:border-r-0 hover:bg-[rgba(26,140,145,0.08)] focus:z-10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--tp-focus)] sm:px-3 sm:py-3 {{ $day['isCurrentMonth'] ? 'bg-[rgba(255,252,245,0.92)]' : 'bg-[rgba(247,240,215,0.62)] text-[rgba(95,72,56,0.42)]' }} {{ $day['isToday'] ? 'ring-2 ring-inset ring-[rgba(221,79,22,0.35)]' : '' }}"
+                                                    class="group flex h-full items-start justify-start border-r border-[rgba(103,71,43,0.08)] px-2 py-2 text-left transition last:border-r-0 hover:bg-[rgba(26,140,145,0.08)] focus:z-10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--tp-focus)] md:px-3 md:py-3 {{ $day['isCurrentMonth'] ? 'bg-[rgba(255,252,245,0.92)]' : 'bg-[rgba(247,240,215,0.62)] text-[rgba(95,72,56,0.42)]' }} {{ $day['isToday'] ? 'ring-2 ring-inset ring-[rgba(221,79,22,0.35)]' : '' }}"
                                                     aria-label="{{ count($day['bookingGroups']) > 0 ? 'View '.count($day['bookingGroups']).' bookings on ' : 'Create booking starting ' }}{{ $day['date']->format('F j, Y') }}"
                                                     aria-haspopup="dialog"
                                                     data-calendar-day
@@ -105,7 +105,7 @@
                                                     @click="openDay(@js($day['date']->toDateString()), @js($day['bookingGroups']), $el)"
                                                 >
                                                     <div class="flex items-center justify-between gap-2">
-                                                        <span class="text-xs font-semibold tabular-nums sm:text-sm {{ $day['isToday'] ? 'text-[var(--tp-brass)]' : 'text-[var(--tp-bark)]' }}">{{ $day['date']->day }}</span>
+                                                        <span class="text-xs font-semibold tabular-nums md:text-sm {{ $day['isToday'] ? 'text-[var(--tp-brass)]' : 'text-[var(--tp-bark)]' }}">{{ $day['date']->day }}</span>
                                                         @if (! $day['isToday'])
                                                             <span class="text-base font-semibold text-[var(--tp-accent)] opacity-0 transition group-hover:opacity-100 group-focus:opacity-100" aria-hidden="true">+</span>
                                                         @endif
@@ -115,7 +115,7 @@
                                         </div>
 
                                         @if (count($week['segments']) > 0)
-                                            <div class="pointer-events-none absolute inset-x-0 top-9 px-2 sm:top-12 sm:px-3">
+                                        <div class="pointer-events-none absolute inset-x-0 top-9 px-2 md:top-12 md:px-3">
                                                 <div class="grid gap-1" style="grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat({{ $week['laneCount'] }}, minmax(1.25rem, auto));">
                                                     @foreach ($week['segments'] as $segment)
                                                         <button

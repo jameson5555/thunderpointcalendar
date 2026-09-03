@@ -218,6 +218,7 @@
 			border-radius: 0;
 		}
 
+		.tp-calendar-surface.tp-surface,
 		.home-surface.tp-surface {
 			border-width: 2px;
 			border-radius: 1.5rem;
@@ -225,18 +226,20 @@
 	}
 
 	@media (min-width: 640px) {
-		.tp-calendar-week {
-			height: auto;
-			aspect-ratio: 9 / 1;
-			min-height: var(--tp-calendar-week-min-height);
-		}
-
 		.tp-part-legend {
 			@apply gap-2;
 		}
 
 		.tp-part-legend-item {
 			@apply px-3 py-1.5 text-[11px] uppercase tracking-[0.14em];
+		}
+	}
+
+	@media (min-width: 768px) {
+		.tp-calendar-week {
+			height: auto;
+			aspect-ratio: 9 / 1;
+			min-height: var(--tp-calendar-week-min-height);
 		}
 	}
 
