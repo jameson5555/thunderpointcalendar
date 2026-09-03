@@ -231,17 +231,36 @@ Alpine.data('dateRangePicker', ({
 			this.syncSelection([]);
 		},
 
+		setDates(startDate = '', endDate = '', nextDisabledRangesByArea = disabledRangesByArea) {
+			if (! pickerInstance) {
+				return;
+			}
+
+			this.disabledRangesByArea = nextDisabledRangesByArea ?? {};
+			this.invalidRangeMessage = '';
+			const dates = [startDate, endDate].filter(Boolean);
+			pickerInstance.close();
+			pickerInstance.setDate(dates, false, 'Y-m-d');
+			this.refreshUnavailableRanges();
+		},
+
 		syncSelection(selectedDates) {
 			const startDate = selectedDates[0] ?? null;
 			const endDate = selectedDates[1] ?? null;
+			const formattedStartDate = startDate ? pickerInstance.formatDate(startDate, 'Y-m-d') : '';
+			const formattedEndDate = endDate ? pickerInstance.formatDate(endDate, 'Y-m-d') : '';
 
 			this.hasSelection = selectedDates.length > 0;
-			this.$refs.start.value = startDate ? pickerInstance.formatDate(startDate, 'Y-m-d') : '';
-			this.$refs.end.value = endDate ? pickerInstance.formatDate(endDate, 'Y-m-d') : '';
+			this.$refs.start.value = formattedStartDate;
+			this.$refs.end.value = formattedEndDate;
 			this.$refs.display.value = this.buildDisplayValue(selectedDates);
 			this.summary = this.buildSummary(selectedDates);
 			this.updateValidity(selectedDates);
 			this.updatePickerActions(selectedDates);
+			this.$dispatch('date-range-changed', {
+				startDate: formattedStartDate,
+				endDate: formattedEndDate,
+			});
 		},
 
 		updatePickerActions(selectedDates) {
@@ -287,12 +306,12 @@ Alpine.data('dateRangePicker', ({
 		},
 
 		selectionConflictsWithUnavailableRange(selectedDates) {
-			if (selectedDates.length !== 2) {
+			if (selectedDates.length === 0) {
 				return false;
 			}
 
 			const selectedStart = selectedDates[0].getTime();
-			const selectedEnd = selectedDates[1].getTime();
+			const selectedEnd = (selectedDates[1] ?? selectedDates[0]).getTime();
 
 			return this.currentUnavailableRanges.some((range) => {
 				const blockedStart = flatpickr.parseDate(range.from, 'Y-m-d')?.getTime();
@@ -322,34 +341,220 @@ Alpine.data('dateRangePicker', ({
 	};
 });
 
-Alpine.data('calendarBookingDetails', () => ({
-	isOpen: false,
+Alpine.data('calendarBookings', ({
+	bookings = {},
+	createAction = '/bookings',
+	currentMonth = '',
+	defaultGuestName = '',
+	canCreateConfirmedBookings = false,
+	createUnavailableRanges = {},
+	initialForm = null,
+} = {}) => ({
+	mode: null,
+	bookings,
+	selectedDay: '',
+	selectedDayBookings: [],
 	selectedBooking: null,
 	triggerElement: null,
-
-	openDetails(booking, triggerElement) {
-		this.selectedBooking = booking;
-		this.triggerElement = triggerElement;
-		this.isOpen = true;
-		document.body.classList.add('overflow-y-hidden');
-
-		this.$nextTick(() => this.$refs.closeButton?.focus());
+	canGoBack: false,
+	hasComposerDraft: false,
+	form: {
+		isEdit: false,
+		group: '',
+		action: createAction,
+		areaIds: [],
+		guestName: defaultGuestName,
+		note: '',
+		paymentMethod: 'pay_later',
+		paymentReference: '',
+		bookAsDraft: false,
+		lockAreas: false,
+		startDate: '',
+		endDate: '',
 	},
 
-	closeDetails() {
-		if (! this.isOpen) {
+	get modalTitle() {
+		if (this.mode === 'agenda') {
+			return this.formatDate(this.selectedDay);
+		}
+
+		if (this.mode === 'view') {
+			return this.selectedBooking?.guestName ?? 'Booking';
+		}
+
+		return this.form.isEdit ? this.form.guestName : 'Book dates';
+	},
+
+	init() {
+		if (! initialForm) {
 			return;
 		}
 
-		this.isOpen = false;
+		this.$nextTick(() => {
+			if (initialForm.context === 'calendar-edit' && initialForm.group && this.bookings[initialForm.group]?.canEdit) {
+				this.openBooking(initialForm.group, null, false, initialForm);
+				return;
+			}
+
+			this.openCreate(initialForm.startDate ?? '', null, false, initialForm);
+		});
+	},
+
+	openDay(date, bookingGroups, triggerElement) {
+		this.selectedDay = date;
+		this.selectedDayBookings = bookingGroups
+			.map((group) => this.bookings[group])
+			.filter(Boolean);
+		this.triggerElement = triggerElement;
+
+		if (this.selectedDayBookings.length === 0) {
+			this.openCreate(date, triggerElement);
+			return;
+		}
+
+		this.canGoBack = false;
+		this.mode = 'agenda';
+		this.openModal();
+	},
+
+	openCreate(date = '', triggerElement = null, fromAgenda = false, restored = null) {
+		if (triggerElement) {
+			this.triggerElement = triggerElement;
+		}
+
+		const preserveDraft = ! restored && this.hasComposerDraft && ! this.form.isEdit;
+		const preservedForm = preserveDraft ? this.form : null;
+		this.selectedBooking = null;
+		this.canGoBack = fromAgenda;
+		this.form = {
+			isEdit: false,
+			group: '',
+			action: createAction,
+			areaIds: restored?.areaIds ?? preservedForm?.areaIds ?? [],
+			guestName: restored?.guestName ?? preservedForm?.guestName ?? defaultGuestName,
+			note: restored?.note ?? preservedForm?.note ?? '',
+			paymentMethod: restored?.paymentMethod ?? preservedForm?.paymentMethod ?? 'pay_later',
+			paymentReference: restored?.paymentReference ?? preservedForm?.paymentReference ?? '',
+			bookAsDraft: restored?.bookAsDraft ?? preservedForm?.bookAsDraft ?? false,
+			lockAreas: false,
+			startDate: restored?.startDate ?? (date || preservedForm?.startDate || ''),
+			endDate: restored?.endDate ?? (date ? '' : preservedForm?.endDate ?? ''),
+		};
+		this.hasComposerDraft = true;
+		this.mode = 'form';
+		this.openModal();
+		this.setPickerDates(this.form.startDate, this.form.endDate, createUnavailableRanges);
+	},
+
+	openBooking(group, triggerElement = null, fromAgenda = false, restored = null) {
+		const booking = this.bookings[group];
+
+		if (! booking) {
+			return;
+		}
+
+		if (triggerElement) {
+			this.triggerElement = triggerElement;
+		}
+
+		this.selectedBooking = booking;
+		this.canGoBack = fromAgenda;
+
+		if (! booking.canEdit || ! booking.edit) {
+			this.mode = 'view';
+			this.openModal();
+			return;
+		}
+
+		this.form = {
+			isEdit: true,
+			group: booking.group,
+			action: booking.edit.action,
+			areaIds: restored?.areaIds ?? booking.edit.areaIds,
+			guestName: restored?.guestName ?? booking.edit.guestName,
+			note: restored?.note ?? booking.edit.note,
+			paymentMethod: restored?.paymentMethod ?? booking.edit.paymentMethod,
+			paymentReference: restored?.paymentReference ?? booking.edit.paymentReference,
+			bookAsDraft: false,
+			lockAreas: booking.edit.lockAreas,
+			startDate: restored?.startDate ?? booking.edit.startDate,
+			endDate: restored?.endDate ?? booking.edit.endDate,
+		};
+		this.mode = 'form';
+		this.openModal();
+		this.setPickerDates(
+			this.form.startDate,
+			this.form.endDate,
+			booking.edit.unavailableRangesByArea,
+		);
+	},
+
+	captureDates({ startDate = '', endDate = '' } = {}) {
+		if (this.mode !== 'form') {
+			return;
+		}
+
+		this.form.startDate = startDate;
+		this.form.endDate = endDate;
+	},
+
+	setPickerDates(startDate, endDate, disabledRangesByArea) {
+		this.$nextTick(() => {
+			window.dispatchEvent(new CustomEvent('calendar-booking-dates', {
+				detail: { startDate, endDate, disabledRangesByArea },
+			}));
+		});
+	},
+
+	backToAgenda() {
+		this.mode = 'agenda';
+		this.selectedBooking = null;
+		this.canGoBack = false;
+		this.$nextTick(() => this.$refs.closeButton?.focus());
+	},
+
+	openModal() {
+		document.body.classList.add('overflow-y-hidden');
+		this.$nextTick(() => this.$refs.closeButton?.focus());
+	},
+
+	closeModal() {
+		if (this.mode === null) {
+			return;
+		}
+
+		this.mode = null;
+		this.canGoBack = false;
 		document.body.classList.remove('overflow-y-hidden');
 		this.$nextTick(() => this.triggerElement?.focus());
+	},
+
+	handleEscape() {
+		if (document.querySelector('.tp-flatpickr.open')) {
+			return;
+		}
+
+		this.closeModal();
+	},
+
+	formatDate(date) {
+		if (! date) {
+			return 'Bookings';
+		}
+
+		return new Intl.DateTimeFormat(undefined, {
+			weekday: 'long',
+			month: 'long',
+			day: 'numeric',
+			year: 'numeric',
+			timeZone: 'UTC',
+		}).format(new Date(`${date}T00:00:00Z`));
 	},
 
 	trapFocus(event) {
 		const focusableElements = Array.from(this.$refs.dialog.querySelectorAll(
 			'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
-		)).filter((element) => ! element.disabled);
+		)).filter((element) => ! element.disabled && element.offsetParent !== null);
 
 		if (focusableElements.length === 0) {
 			return;

@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Http\Requests;
+
+class DraftBookingUpdateRequest extends BookingStoreRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user() !== null;
+    }
+}

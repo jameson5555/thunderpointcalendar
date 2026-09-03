@@ -21,12 +21,13 @@ class AdminBookingUpdateController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
-        $existingBookings = Booking::query()
+        $groupBookings = Booking::query()
             ->where('booking_group', $bookingGroup)
-            ->where('status', Booking::STATUS_ACTIVE)
             ->get();
 
-        abort_if($existingBookings->isEmpty(), 404);
+        abort_if($groupBookings->isEmpty(), 404);
+        abort_unless($groupBookings->every(fn (Booking $booking) => $booking->status === Booking::STATUS_ACTIVE), 403);
+        $existingBookings = $groupBookings;
 
         $accessibleAreas = $user->isAdmin()
             ? LivingArea::query()->whereIn('id', $validated['living_area_ids'])->orderBy('display_order')->get()
@@ -82,7 +83,12 @@ class AdminBookingUpdateController extends Controller
         }
 
         return redirect()
-            ->route('admin.index')
+            ->route(
+                ($validated['form_context'] ?? null) === 'calendar-edit' ? 'dashboard' : 'admin.index',
+                ($validated['form_context'] ?? null) === 'calendar-edit'
+                    ? array_filter(['month' => $validated['return_month'] ?? null])
+                    : [],
+            )
             ->with('status', sprintf('Confirmed stay updated for %s.', $updatedBookings->pluck('livingArea.name')->join(', ')));
     }
 }

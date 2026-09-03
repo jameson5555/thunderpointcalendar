@@ -33,12 +33,12 @@ class BookingWorkflowTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('data-date-range-picker', false)
-            ->assertSee('data-persistent-range-picker', false)
+            ->assertSee('data-calendar-booking-form', false)
             ->assertSee('Choose arrival and departure')
             ->assertDontSee('type="date"', false);
     }
 
-    public function test_dashboard_prioritizes_calendar_then_booking_form_then_your_bookings(): void
+    public function test_dashboard_uses_calendar_modal_before_your_bookings(): void
     {
         CarbonImmutable::setTestNow('2026-09-02 12:00:00');
 
@@ -63,12 +63,15 @@ class BookingWorkflowTest extends TestCase
                 ->get(route('dashboard'))
                 ->assertOk()
                 ->assertSeeInOrder([
+                    'data-calendar-day',
                     'data-calendar-booking-trigger',
-                    'data-booking-jump',
-                    'data-booking-form',
+                    'data-calendar-modal',
+                    'data-calendar-day-agenda',
+                    'data-calendar-booking-form',
                     'data-your-bookings',
                 ], false)
-                ->assertSee('data-calendar-booking-dialog', false)
+                ->assertDontSee('data-booking-jump', false)
+                ->assertDontSee('data-booking-form', false)
                 ->assertSee('Mobile Calendar Guest')
                 ->assertSee($area->name)
                 ->assertSee('Sep 10, 2026')

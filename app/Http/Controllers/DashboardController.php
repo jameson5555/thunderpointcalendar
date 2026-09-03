@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\LivingArea;
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): View
     {
+        $user = $request->user()->loadMissing('managedAreas');
         $month = $request->string('month')->toString();
         $currentMonth = $month !== ''
             ? CarbonImmutable::createFromFormat('Y-m', $month)->startOfMonth()
@@ -38,17 +40,24 @@ class DashboardController extends Controller
 
         $activeBookings = Booking::query()
             ->where('status', Booking::STATUS_ACTIVE)
-            ->whereDate('end_date', '>=', $today->toDateString())
             ->orderBy('start_date')
             ->get();
 
+        $calendarBookingGroups = $bookings
+            ->groupBy(fn (Booking $booking) => $booking->booking_group ?: (string) $booking->id)
+            ->map(fn (Collection $group) => $this->calendarBookingGroupSummary(
+                $group,
+                $user,
+                $activeBookings,
+            ));
+
         $myBookings = Booking::query()
             ->with('livingArea')
-            ->where('created_by', $request->user()->id)
+            ->where('created_by', $user->id)
             ->orderByDesc('start_date')
             ->get()
             ->groupBy(fn (Booking $booking) => $booking->booking_group ?: (string) $booking->id)
-            ->map(fn (Collection $group) => $this->bookingGroupSummary($group))
+            ->map(fn (Collection $group) => $this->myBookingGroupSummary($group))
             ->values();
 
         $calendarDays = collect();
@@ -58,6 +67,12 @@ class DashboardController extends Controller
                 'date' => $date,
                 'isCurrentMonth' => $date->month === $currentMonth->month,
                 'isToday' => $date->equalTo($today),
+                'bookingGroups' => $calendarBookingGroups
+                    ->filter(fn (array $group) => $group['startDate'] <= $date->toDateString()
+                        && $group['endDate'] >= $date->toDateString())
+                    ->keys()
+                    ->values()
+                    ->all(),
             ]);
         }
 
@@ -77,8 +92,10 @@ class DashboardController extends Controller
             });
 
         return view('dashboard', [
-            'canCreateConfirmedBookings' => $request->user()->canAccessAdmin(),
+            'canCreateConfirmedBookings' => $user->canAccessAdmin(),
+            'calendarBookingGroups' => $calendarBookingGroups,
             'calendarWeeks' => $calendarWeeks,
+            'currentMonth' => $currentMonth->format('Y-m'),
             'livingAreas' => $livingAreas,
             'monthLabel' => $currentMonth->format('F Y'),
             'myBookings' => $myBookings,
@@ -146,6 +163,7 @@ class DashboardController extends Controller
 
                 if ($booking->status === Booking::STATUS_ACTIVE) {
                     return [
+                        'booking_group' => $booking->booking_group ?: (string) $booking->id,
                         'label' => $booking->guest_name,
                         'area_name' => $booking->livingArea?->name ?? 'Unknown part',
                         'area_color' => $deepColor,
@@ -169,6 +187,7 @@ class DashboardController extends Controller
                 }
 
                 return [
+                    'booking_group' => $booking->booking_group ?: (string) $booking->id,
                     'label' => sprintf('%s - DRAFT', $booking->guest_name),
                     'area_name' => $booking->livingArea?->name ?? 'Unknown part',
                     'area_color' => $deepColor,
@@ -198,7 +217,71 @@ class DashboardController extends Controller
         ];
     }
 
-    private function bookingGroupSummary(Collection $group): array
+    private function calendarBookingGroupSummary(Collection $group, User $user, Collection $activeBookings): array
+    {
+        /** @var Booking $first */
+        $first = $group->first();
+        $bookingGroup = $first->booking_group ?: (string) $first->id;
+        $statuses = $group->pluck('status')->unique()->values();
+        $groupStatus = $statuses->count() > 1 ? 'mixed' : $statuses->first();
+        $isDraftOwner = $groupStatus === Booking::STATUS_DRAFT
+            && $group->every(fn (Booking $booking) => $booking->created_by === $user->id);
+        $managesEveryArea = $user->canAccessAdmin()
+            && $group->every(fn (Booking $booking) => $user->managesArea($booking->living_area_id));
+        $canEditActive = $groupStatus === Booking::STATUS_ACTIVE
+            && ($user->isAdmin() || $managesEveryArea);
+        $canEdit = $isDraftOwner || $canEditActive;
+
+        $summary = [
+            'group' => $bookingGroup,
+            'guestName' => $first->guest_name,
+            'areas' => $group
+                ->sortBy(fn (Booking $booking) => $booking->livingArea?->display_order ?? 0)
+                ->map(fn (Booking $booking) => [
+                    'name' => $booking->livingArea?->name ?? 'Unknown part',
+                    'color' => $booking->livingArea?->deep_color ?? '#4a3422',
+                ])
+                ->values()
+                ->all(),
+            'startDate' => $first->start_date->toDateString(),
+            'endDate' => $first->end_date->toDateString(),
+            'formattedStartDate' => $first->start_date->format('M j, Y'),
+            'formattedEndDate' => $first->end_date->format('M j, Y'),
+            'statusLabel' => match ($groupStatus) {
+                Booking::STATUS_ACTIVE => 'Confirmed',
+                Booking::STATUS_DRAFT => 'Draft',
+                default => 'Mixed',
+            },
+            'canEdit' => $canEdit,
+        ];
+
+        if (! $canEdit) {
+            return $summary;
+        }
+
+        return [
+            ...$summary,
+            'edit' => [
+                'action' => $isDraftOwner
+                    ? route('bookings.draft.update', $bookingGroup, absolute: false)
+                    : route('admin.bookings.update', $bookingGroup, absolute: false),
+                'areaIds' => $group->pluck('living_area_id')->map(fn (int $id) => (string) $id)->values()->all(),
+                'guestName' => $first->guest_name,
+                'startDate' => $first->start_date->toDateString(),
+                'endDate' => $first->end_date->toDateString(),
+                'note' => $first->note ?? '',
+                'paymentMethod' => $first->payment_method ?? 'pay_later',
+                'paymentReference' => $first->payment_reference ?? '',
+                'lockAreas' => $canEditActive && ! $user->isAdmin(),
+                'unavailableRangesByArea' => $this->unavailableRangesByArea(
+                    $activeBookings,
+                    $groupStatus === Booking::STATUS_ACTIVE ? $bookingGroup : null,
+                ),
+            ],
+        ];
+    }
+
+    private function myBookingGroupSummary(Collection $group): array
     {
         /** @var Booking $first */
         $first = $group->first();

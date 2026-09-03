@@ -37,6 +37,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::patch('/admin/living-areas/{livingArea}/managers/{user}', LivingAreaManagerController::class)->name('admin.living-areas.managers.update');
 
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::patch('/bookings/{bookingGroup}/draft', [BookingController::class, 'updateDraft'])->name('bookings.draft.update');
     Route::patch('/bookings/{bookingGroup}/payment', [BookingController::class, 'updatePayment'])->name('bookings.payment.update');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -24,6 +24,9 @@ class BookingStoreRequest extends FormRequest
             'payment_method' => ['nullable', Rule::in(array_keys(config('thunderpoint.payment_methods')))],
             'payment_reference' => ['nullable', 'string', 'max:255'],
             'book_as_draft' => ['nullable', 'boolean'],
+            'return_month' => ['nullable', 'date_format:Y-m'],
+            'form_context' => ['nullable', Rule::in(['calendar-create', 'calendar-edit'])],
+            'editing_group' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

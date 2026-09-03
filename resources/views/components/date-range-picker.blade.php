@@ -25,9 +25,9 @@
         areaInputName: @js($areaInputName),
     })"
     x-init="init()"
+    @calendar-booking-dates.window="setDates($event.detail.startDate, $event.detail.endDate, $event.detail.disabledRangesByArea)"
     class="space-y-2"
     data-date-range-picker
-    data-persistent-range-picker
 >
     <x-input-label :for="$id" :value="$label" />
 
