@@ -48,7 +48,7 @@
                             <div class="space-y-5">
                                 <div class="space-y-2">
                                     <p class="tp-meta text-[var(--tp-status)]">Signed in</p>
-                                    <h1 class="font-display text-3xl text-[var(--tp-bark)]">{{ auth()->user()->name }}</h1>
+                                    <h1 class="tp-heading-page">{{ auth()->user()->name }}</h1>
                                 </div>
 
                                 <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -71,7 +71,7 @@
 
                             <div id="login-panel" role="tabpanel" aria-labelledby="login-tab" x-show="panel === 'login'" x-cloak class="mt-6">
                                 <div class="mb-6">
-                                    <h2 class="font-display text-3xl text-[var(--tp-bark)]">Sign in</h2>
+                                    <h2 class="tp-heading-section">Sign in</h2>
                                 </div>
 
                                 @if ($errors->getBag('login')->any())
@@ -119,7 +119,7 @@
 
                             <div id="register-panel" role="tabpanel" aria-labelledby="register-tab" x-show="panel === 'register'" x-cloak class="mt-6">
                                 <div class="mb-6">
-                                    <h2 class="font-display text-3xl text-[var(--tp-bark)]">Register</h2>
+                                    <h2 class="tp-heading-section">Register</h2>
                                 </div>
 
                                 @if ($errors->getBag('register')->any())

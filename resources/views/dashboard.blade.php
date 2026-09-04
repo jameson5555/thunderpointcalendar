@@ -73,7 +73,7 @@
                                 </svg>
                             </a>
 
-                            <h1 class="text-center font-display text-xl text-[var(--tp-bark)] md:text-3xl">{{ $monthLabel }}</h1>
+                            <h1 class="text-center tp-heading-page">{{ $monthLabel }}</h1>
 
                             <a href="{{ route('dashboard', ['month' => $nextMonth]) }}" class="tp-calendar-nav-button justify-self-end" aria-label="View next month">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -177,7 +177,7 @@
                                 </button>
                                 <div class="min-w-0">
                                     <p x-show="mode !== 'form'" class="tp-meta" x-text="mode === 'agenda' ? 'Day agenda' : 'Booking details'"></p>
-                                    <h2 x-ref="modalTitle" id="calendar-modal-title" tabindex="-1" class="truncate font-display text-2xl text-[var(--tp-bark)]" :class="mode === 'form' ? '' : 'mt-1'" x-text="modalTitle"></h2>
+                                    <h2 x-ref="modalTitle" id="calendar-modal-title" tabindex="-1" class="truncate tp-heading-section" :class="mode === 'form' ? '' : 'mt-1'" x-text="modalTitle"></h2>
                                 </div>
                             </div>
                             <button x-ref="closeButton" type="button" class="tp-calendar-nav-button shrink-0" aria-label="Close calendar dialog" data-calendar-modal-close @click="closeModal()">
@@ -336,7 +336,7 @@
                 </template>
 
                 <section class="tp-surface tp-surface--booking px-5 py-6 sm:p-6" data-your-bookings>
-                    <h2 class="font-display text-2xl text-[var(--tp-bark)]">Your bookings</h2>
+                    <h2 class="tp-heading-section">Your bookings</h2>
 
                     <div class="mt-5 space-y-4 sm:mt-6">
                         @forelse ($myBookings as $booking)
@@ -349,7 +349,7 @@
                                             @endforeach
                                         </div>
                                         <div>
-                                            <h3 class="text-lg font-bold text-[var(--tp-bark)]">{{ $booking['guest_name'] }}</h3>
+                                            <h3 class="tp-heading-item">{{ $booking['guest_name'] }}</h3>
                                             <p class="mt-1 text-sm leading-6 text-[var(--tp-muted)]">{{ $booking['start_date']->format('M j, Y') }} to {{ $booking['end_date']->format('M j, Y') }}</p>
                                             @if ($booking['note'])
                                                 <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">{{ $booking['note'] }}</p>

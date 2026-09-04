@@ -1,6 +1,6 @@
 <x-guest-layout title="Register">
     <div class="mb-6">
-        <h1 class="font-display text-3xl text-[var(--tp-bark)]">Register</h1>
+        <h1 class="tp-heading-page">Register</h1>
     </div>
 
     <form method="POST" action="{{ route('register') }}">

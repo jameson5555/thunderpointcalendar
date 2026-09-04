@@ -1,6 +1,6 @@
 <section class="space-y-6">
     <header>
-        <h2 class="text-lg font-medium text-gray-900">
+        <h2 class="tp-heading-section">
             {{ __('Delete Account') }}
         </h2>
 
@@ -20,7 +20,7 @@
             @method('delete')
             <x-error-summary :errors="$errors->userDeletion" class="mb-5" />
 
-            <h2 id="confirm-user-deletion-title" class="text-lg font-medium text-gray-900">
+            <h2 id="confirm-user-deletion-title" class="tp-heading-section">
                 {{ __('Are you sure you want to delete your account?') }}
             </h2>
 

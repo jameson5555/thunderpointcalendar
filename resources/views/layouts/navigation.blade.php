@@ -184,7 +184,7 @@
 
     <x-modal name="install-guidance" maxWidth="sm" labelledby="install-guidance-title">
         <div class="p-6 sm:p-7">
-            <h2 id="install-guidance-title" tabindex="-1" autofocus class="font-display text-2xl text-[var(--tp-bark)]">
+            <h2 id="install-guidance-title" tabindex="-1" autofocus class="tp-heading-section">
                 {{ __('Add Thunderpoint to your phone') }}
             </h2>
 

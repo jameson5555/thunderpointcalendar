@@ -1,6 +1,6 @@
 <x-guest-layout title="Reset password">
     <div class="mb-6">
-        <h1 class="font-display text-3xl text-[var(--tp-bark)]">Reset password</h1>
+        <h1 class="tp-heading-page">Reset password</h1>
     </div>
 
     <form method="POST" action="{{ route('password.email') }}">

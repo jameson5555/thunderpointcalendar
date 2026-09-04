@@ -1,6 +1,6 @@
 <x-app-layout title="Profile">
     <x-slot name="header">
-        <h1 class="font-display text-2xl leading-tight text-[var(--tp-bark)]">
+        <h1 class="tp-heading-page">
             {{ __('Profile') }}
         </h1>
     </x-slot>

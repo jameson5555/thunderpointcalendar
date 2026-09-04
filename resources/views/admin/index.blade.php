@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div>
             <p class="tp-meta text-[var(--tp-text-accent)]">Admin</p>
-            <h1 class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $isAdminView ? 'Thunderpoint administration' : 'Poobah area management' }}</h1>
+            <h1 class="mt-2 tp-heading-page">{{ $isAdminView ? 'Thunderpoint administration' : 'Poobah area management' }}</h1>
             <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--tp-muted)]">{{ $isAdminView ? 'Approve people and bookings, manage areas, and assign roles.' : 'Review stays for your areas and update their settings.' }}</p>
         </div>
     </x-slot>
@@ -31,7 +31,7 @@
                     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
                             <p class="tp-meta">Start here</p>
-                            <h2 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Bookings to review and update</h2>
+                            <h2 class="mt-2 tp-heading-section">Bookings to review and update</h2>
                             <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--tp-muted)]">
                                 {{ $isAdminView
                                     ? 'Review booking details first, then approve drafts or update confirmed stays. Area settings stay available in the right column while you work.'
@@ -60,7 +60,7 @@
                     <div class="flex items-end justify-between gap-4">
                         <div>
                             <p class="tp-meta">Booking queue</p>
-                            <h2 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">All booking groups for this page</h2>
+                            <h2 class="mt-2 tp-heading-section">All booking groups for this page</h2>
                         </div>
                         <p class="text-sm leading-6 text-[var(--tp-muted)]">Newest stays and requests appear first.</p>
                     </div>
@@ -84,7 +84,7 @@
                                         @endforeach
                                     </div>
 
-                                    <h3 class="mt-4 font-display text-2xl text-[var(--tp-bark)]">{{ $booking['guest_name'] }}</h3>
+                                    <h3 class="mt-4 tp-heading-item">{{ $booking['guest_name'] }}</h3>
                                     <p class="mt-1 text-sm leading-6 text-[var(--tp-muted)]">Requested by {{ $booking['requested_by'] ?? 'Unknown user' }}</p>
                                     <p class="text-sm leading-6 text-[var(--tp-muted)]">{{ $booking['start_date']->format('M j, Y') }} to {{ $booking['end_date']->format('M j, Y') }}</p>
                                 </div>
@@ -243,7 +243,7 @@
                     <section class="tp-surface tp-surface--guidance p-5">
                         <div>
                             <p class="tp-meta">User approvals</p>
-                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Pending account approvals</h3>
+                            <h3 class="mt-2 tp-heading-item">Pending account approvals</h3>
                             <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Handle these after the current booking queue is under control.</p>
                         </div>
 
@@ -255,7 +255,7 @@
                                             <div class="flex flex-wrap gap-2">
                                                 <span class="tp-chip border-transparent bg-[var(--tp-orange)] text-white">Pending</span>
                                             </div>
-                                            <h4 class="mt-4 font-display text-2xl text-[var(--tp-bark)]">{{ $pendingUser->name }}</h4>
+                                            <h4 class="mt-4 tp-heading-subitem">{{ $pendingUser->name }}</h4>
                                             <p class="mt-1 text-sm text-[var(--tp-muted)]">{{ $pendingUser->email }}</p>
                                             <p class="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--tp-muted)]">Registered {{ optional($pendingUser->created_at)->format('M j, Y g:i a') }}</p>
                                         </div>
@@ -279,7 +279,7 @@
                     <section class="tp-surface tp-surface--settings p-5">
                         <div>
                             <p class="tp-meta">User roles</p>
-                            <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Assign Poobahs by living area</h3>
+                            <h3 class="mt-2 tp-heading-item">Assign Poobahs by living area</h3>
                             <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Use these role controls after the booking queue is handled.</p>
                         </div>
 
@@ -287,7 +287,7 @@
                             @foreach ($users as $managedUser)
                                 <article class="tp-surface-subtle p-4">
                                     <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-                                        <h4 class="font-display text-2xl text-[var(--tp-bark)]">{{ $managedUser->name }}</h4>
+                                        <h4 class="tp-heading-subitem">{{ $managedUser->name }}</h4>
                                         <p class="text-sm text-[var(--tp-muted)]">{{ $managedUser->email }}</p>
                                     </div>
 
@@ -325,7 +325,7 @@
                 <section class="tp-surface tp-surface--settings p-5 sm:p-6">
                     <div>
                         <p class="tp-meta">Area settings</p>
-                        <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Names and booking messages</h3>
+                        <h3 class="mt-2 tp-heading-item">Names and booking messages</h3>
                         <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">
                             {{ $isAdminView
                                 ? 'Keep these details current so people see the right area names and instructions when they book.'
@@ -337,7 +337,7 @@
                         @foreach ($livingAreas as $area)
                             <article class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] p-4">
                                 <div class="flex items-center justify-between gap-3">
-                                    <h4 class="font-display text-xl text-[var(--tp-bark)]">{{ $area->name }}</h4>
+                                    <h4 class="tp-heading-subitem">{{ $area->name }}</h4>
                                     <span aria-hidden="true" class="inline-flex h-4 w-4 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                 </div>
 

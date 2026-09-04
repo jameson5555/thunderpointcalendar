@@ -1,6 +1,6 @@
 <x-guest-layout title="Confirm password">
     <div class="mb-6">
-        <h1 class="font-display text-3xl text-[var(--tp-bark)]">Confirm password</h1>
+        <h1 class="tp-heading-page">Confirm password</h1>
         <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Re-enter your password to continue.</p>
     </div>
 

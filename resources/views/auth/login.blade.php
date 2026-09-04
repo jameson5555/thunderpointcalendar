@@ -1,6 +1,6 @@
 <x-guest-layout title="Sign in">
     <div class="mb-6">
-        <h1 class="font-display text-3xl text-[var(--tp-bark)]">Sign in</h1>
+        <h1 class="tp-heading-page">Sign in</h1>
     </div>
 
     <form method="POST" action="{{ route('login') }}">

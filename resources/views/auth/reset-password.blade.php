@@ -1,6 +1,6 @@
 <x-guest-layout title="Choose a new password">
     <div class="mb-6">
-        <h1 class="font-display text-3xl text-[var(--tp-bark)]">Choose a new password</h1>
+        <h1 class="tp-heading-page">Choose a new password</h1>
         <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Set the password you want to use for sign in.</p>
     </div>
 

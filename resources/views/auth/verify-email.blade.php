@@ -1,6 +1,6 @@
 <x-guest-layout title="Verify email">
     <div class="mb-6">
-        <h1 class="font-display text-3xl text-[var(--tp-bark)]">Verify email</h1>
+        <h1 class="tp-heading-page">Verify email</h1>
         <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Use the link in your email before signing in.</p>
     </div>
 

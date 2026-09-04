@@ -2,7 +2,7 @@
     <div class="space-y-5">
         <div class="space-y-2">
             <p class="tp-meta text-[var(--tp-status)]">Account access</p>
-            <h1 class="font-display text-3xl text-[var(--tp-bark)]">Approval pending</h1>
+            <h1 class="tp-heading-page">Approval pending</h1>
         </div>
 
         <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] p-4 text-sm leading-6 text-[var(--tp-muted)]">

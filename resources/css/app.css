@@ -82,6 +82,23 @@
 }
 
 @layer components {
+	/* Content headings remain distinct from the Thunderpoint wordmark (2–3.2rem). */
+	.tp-heading-page {
+		@apply font-display text-2xl leading-tight text-[var(--tp-bark)] sm:text-3xl;
+	}
+
+	.tp-heading-section {
+		@apply font-display text-xl leading-tight text-[var(--tp-bark)] sm:text-2xl;
+	}
+
+	.tp-heading-item {
+		@apply font-display text-lg leading-snug text-[var(--tp-bark)] sm:text-xl;
+	}
+
+	.tp-heading-subitem {
+		@apply font-display text-base leading-snug text-[var(--tp-bark)] sm:text-lg;
+	}
+
 	.tp-chip {
 		@apply inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em];
 		border-color: var(--tp-border);
