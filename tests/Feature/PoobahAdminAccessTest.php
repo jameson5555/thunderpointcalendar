@@ -306,12 +306,12 @@ class PoobahAdminAccessTest extends TestCase
     {
         $poobah = User::factory()->create();
         $guest = User::factory()->create();
-        $managedArea = LivingArea::query()->firstOrFail();
-        $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
+        $managedAreas = LivingArea::query()->take(2)->get();
+        $poobah->managedAreas()->attach($managedAreas->pluck('id'), ['role' => 'poobah']);
 
         Booking::query()->create([
             'booking_group' => 'poobah-edit-group',
-            'living_area_id' => $managedArea->id,
+            'living_area_id' => $managedAreas->first()->id,
             'created_by' => $guest->id,
             'approved_by' => $poobah->id,
             'guest_name' => 'Old Managed Guest',
@@ -326,7 +326,7 @@ class PoobahAdminAccessTest extends TestCase
 
         $this->actingAs($poobah)
             ->patch(route('admin.bookings.update', 'poobah-edit-group'), [
-                'living_area_ids' => [$managedArea->id],
+                'living_area_ids' => $managedAreas->pluck('id')->all(),
                 'guest_name' => 'New Managed Guest',
                 'start_date' => '2027-02-03',
                 'end_date' => '2027-02-04',
@@ -336,9 +336,28 @@ class PoobahAdminAccessTest extends TestCase
 
         $this->assertDatabaseHas('bookings', [
             'guest_name' => 'New Managed Guest',
-            'living_area_id' => $managedArea->id,
+            'living_area_id' => $managedAreas->first()->id,
             'status' => Booking::STATUS_ACTIVE,
         ]);
+        $this->assertDatabaseHas('bookings', [
+            'guest_name' => 'New Managed Guest',
+            'living_area_id' => $managedAreas->last()->id,
+            'status' => Booking::STATUS_ACTIVE,
+        ]);
+        $this->assertSame(
+            ['2027-02-03 to 2027-02-04', '2027-02-03 to 2027-02-04'],
+            Booking::query()
+                ->where('guest_name', 'New Managed Guest')
+                ->where('status', Booking::STATUS_ACTIVE)
+                ->orderBy('living_area_id')
+                ->get()
+                ->map(fn (Booking $booking) => sprintf(
+                    '%s to %s',
+                    $booking->start_date->toDateString(),
+                    $booking->end_date->toDateString(),
+                ))
+                ->all(),
+        );
         $this->assertDatabaseHas('bookings', [
             'booking_group' => 'poobah-edit-group',
             'status' => Booking::STATUS_CANCELLED,
@@ -375,6 +394,45 @@ class PoobahAdminAccessTest extends TestCase
             'booking_group' => 'poobah-cancel-group',
             'status' => Booking::STATUS_CANCELLED,
             'cancelled_by' => $poobah->id,
+        ]);
+    }
+
+    public function test_poobah_cannot_replace_a_stay_that_includes_an_unmanaged_area(): void
+    {
+        $poobah = User::factory()->create();
+        $guest = User::factory()->create();
+        $managedArea = LivingArea::query()->firstOrFail();
+        $unmanagedArea = LivingArea::query()->skip(1)->firstOrFail();
+        $poobah->managedAreas()->attach($managedArea->id, ['role' => 'poobah']);
+
+        Booking::query()->create([
+            'booking_group' => 'unmanaged-edit-group',
+            'living_area_id' => $unmanagedArea->id,
+            'created_by' => $guest->id,
+            'guest_name' => 'Protected Guest',
+            'start_date' => '2027-03-01',
+            'end_date' => '2027-03-02',
+            'status' => Booking::STATUS_ACTIVE,
+            'amount_cents' => 2000,
+            'payment_status' => Booking::PAYMENT_UNPAID,
+            'payment_method' => 'pay_later',
+            'approved_at' => now(),
+        ]);
+
+        $this->actingAs($poobah)
+            ->patch(route('admin.bookings.update', 'unmanaged-edit-group'), [
+                'living_area_ids' => [$managedArea->id],
+                'guest_name' => 'Should Not Replace',
+                'start_date' => '2027-03-03',
+                'end_date' => '2027-03-04',
+                'payment_method' => 'pay_later',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('bookings', [
+            'booking_group' => 'unmanaged-edit-group',
+            'living_area_id' => $unmanagedArea->id,
+            'status' => Booking::STATUS_ACTIVE,
         ]);
     }
 }

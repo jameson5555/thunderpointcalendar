@@ -274,7 +274,7 @@ class DashboardController extends Controller
                 'note' => $first->note ?? '',
                 'paymentMethod' => $first->payment_method ?? 'pay_later',
                 'paymentReference' => $first->payment_reference ?? '',
-                'lockAreas' => $canEditActive && ! $user->isAdmin(),
+                'lockAreas' => false,
                 'unavailableRangesByArea' => $this->unavailableRangesByArea(
                     $activeBookings,
                     $groupStatus === Booking::STATUS_ACTIVE ? $bookingGroup : null,

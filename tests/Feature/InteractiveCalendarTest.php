@@ -122,7 +122,7 @@ class InteractiveCalendarTest extends TestCase
             ->get(route('dashboard', ['month' => '2026-09']))
             ->viewData('calendarBookingGroups');
         $this->assertTrue($poobahGroups->get('managed-active-group')['canEdit']);
-        $this->assertTrue($poobahGroups->get('managed-active-group')['edit']['lockAreas']);
+        $this->assertFalse($poobahGroups->get('managed-active-group')['edit']['lockAreas']);
         $this->assertFalse($poobahGroups->get('partially-managed-active-group')['canEdit']);
         $this->assertArrayNotHasKey('edit', $poobahGroups->get('partially-managed-active-group'));
     }

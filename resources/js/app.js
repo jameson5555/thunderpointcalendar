@@ -177,6 +177,7 @@ Alpine.data('dateRangePicker', ({
 				animation: ! window.matchMedia('(prefers-reduced-motion: reduce)').matches,
 				displayDisabledDates: true,
 				enableJumpToSelectedDate: true,
+				firstWeekday: 0,
 				selectionDatesMode: 'single',
 				selectedDates: this.selectedDateForActiveField(),
 				disableDates: this.currentUnavailableRanges.map((range) => this.rangeString(range.from, range.to)),

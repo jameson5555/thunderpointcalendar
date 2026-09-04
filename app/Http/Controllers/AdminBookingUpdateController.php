@@ -36,10 +36,12 @@ class AdminBookingUpdateController extends Controller
         abort_if($accessibleAreas->count() !== count($validated['living_area_ids']), 403);
 
         if (! $user->isAdmin()) {
-            $existingAreaIds = $existingBookings->pluck('living_area_id')->unique()->sort()->values()->all();
-            $requestedAreaIds = $accessibleAreas->pluck('id')->unique()->sort()->values()->all();
+            $existingAreaIds = $existingBookings->pluck('living_area_id')->unique();
+            $managedExistingAreaCount = $user->managedAreas()
+                ->whereIn('living_areas.id', $existingAreaIds)
+                ->count();
 
-            abort_if($existingAreaIds !== $requestedAreaIds, 403);
+            abort_if($managedExistingAreaCount !== $existingAreaIds->count(), 403);
         }
 
         DB::transaction(function () use ($existingBookings, $user): void {
