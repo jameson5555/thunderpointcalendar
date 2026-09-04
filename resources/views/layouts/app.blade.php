@@ -18,6 +18,7 @@
     <body class="bg-[var(--tp-paper)] font-sans antialiased text-[var(--tp-ink)]">
         <a href="#main-content" class="tp-skip-link">Skip to main content</a>
         <div id="app-shell" class="min-h-screen">
+            <x-environment-banner />
             @include('layouts.navigation')
 
             @isset($header)

@@ -70,6 +70,23 @@ class NavigationTest extends TestCase
             ->assertSee('site.webmanifest');
     }
 
+    public function test_staging_banner_is_only_rendered_in_the_staging_environment(): void
+    {
+        $member = User::factory()->create();
+
+        $this->get(route('home'))->assertDontSee('Staging environment');
+
+        config(['app.env' => 'staging']);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('Staging environment');
+
+        $this->actingAs($member)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Staging environment');
+    }
+
     public function test_web_app_manifest_has_the_expected_identity_and_icons(): void
     {
         $manifest = json_decode(file_get_contents(public_path('site.webmanifest')), true, flags: JSON_THROW_ON_ERROR);

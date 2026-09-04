@@ -18,6 +18,7 @@
     </head>
     <body class="font-sans antialiased text-[var(--tp-ink)]">
         <a href="#main-content" class="tp-skip-link">Skip to main content</a>
+        <x-environment-banner />
         <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: image-set(url('{{ asset('images/thunderpoint-sunset.webp') }}') type('image/webp'), url('{{ asset('images/thunderpoint-sunset.jpg') }}') type('image/jpeg'));">
             <main id="main-content" tabindex="-1" class="mx-auto flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
                 <section class="w-full max-w-[600px]">

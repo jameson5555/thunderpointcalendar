@@ -17,6 +17,7 @@
     </head>
     <body class="font-sans text-[var(--tp-ink)] antialiased">
         <a href="#main-content" class="tp-skip-link">Skip to main content</a>
+        <x-environment-banner />
         @php
             $selectedPanel = old('auth_panel', $authPanel);
 
