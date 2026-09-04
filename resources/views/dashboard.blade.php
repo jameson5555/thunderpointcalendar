@@ -18,7 +18,7 @@
         </ul>
     </x-slot>
 
-    <div class="mx-auto max-w-7xl px-0 py-2 sm:px-6 sm:py-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-3 py-2 sm:px-6 sm:py-6 lg:px-8">
         @php
             $monthDate = \Carbon\CarbonImmutable::createFromFormat('F Y', $monthLabel, config('app.timezone'));
             $previousMonth = $monthDate->subMonth()->format('Y-m');
@@ -64,8 +64,8 @@
             @date-range-changed="captureDates($event.detail)"
             data-dashboard-layout
         >
-                <section class="px-3 sm:px-0" data-calendar-overview>
-                    <div class="tp-calendar-surface tp-surface overflow-hidden rounded-[1.5rem]">
+                <section data-calendar-overview>
+                    <div class="tp-calendar-surface tp-surface tp-surface--action overflow-hidden">
                         <div class="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 border-b border-[var(--tp-border)] px-3 py-2.5 md:grid-cols-[3rem_minmax(0,1fr)_3rem] md:px-5 md:py-4">
                             <a href="{{ route('dashboard', ['month' => $previousMonth]) }}" class="tp-calendar-nav-button" aria-label="View previous month">
                                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -335,7 +335,7 @@
                 </div>
                 </template>
 
-                <section class="tp-surface px-5 py-6 sm:p-6" data-your-bookings>
+                <section class="tp-surface tp-surface--booking px-5 py-6 sm:p-6" data-your-bookings>
                     <h2 class="font-display text-2xl text-[var(--tp-bark)]">Your bookings</h2>
 
                     <div class="mt-5 space-y-4 sm:mt-6">

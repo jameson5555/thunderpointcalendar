@@ -1,0 +1,25 @@
+{
+    "id": "/",
+    "name": "Thunderpoint",
+    "short_name": "Thunderpoint",
+    "description": "The shared calendar for Thunderpoint.",
+    "start_url": "/dashboard",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#d9c89e",
+    "theme_color": "#d9c89e",
+    "icons": [
+        {
+            "src": "/icons/thunderpoint-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/thunderpoint-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}

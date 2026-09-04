@@ -4,6 +4,16 @@ import Alpine from 'alpinejs';
 import { Calendar } from 'vanilla-calendar-pro';
 
 const flashScrollPositionKey = 'tp:flash-scroll-y';
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+	event.preventDefault();
+	deferredInstallPrompt = event;
+});
+
+window.addEventListener('appinstalled', () => {
+	deferredInstallPrompt = null;
+});
 
 document.addEventListener('submit', (event) => {
 	const form = event.target;
@@ -27,6 +37,80 @@ document.addEventListener('submit', (event) => {
 });
 
 window.Alpine = Alpine;
+
+Alpine.data('mobileNavigation', () => ({
+	canOfferInstall: false,
+	isAppleMobile: false,
+	open: false,
+
+	init() {
+		this.isAppleMobile = /iPad|iPhone|iPod/i.test(window.navigator.userAgent)
+			|| (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+		this.canOfferInstall = ! this.isStandalone();
+	},
+
+	isStandalone() {
+		return window.matchMedia('(display-mode: standalone)').matches
+			|| window.navigator.standalone === true;
+	},
+
+	toggleMenu() {
+		this.open = ! this.open;
+	},
+
+	closeMenu(restoreFocus = false) {
+		if (! this.open) {
+			return;
+		}
+
+		this.open = false;
+
+		if (restoreFocus) {
+			this.$nextTick(() => this.$refs.mobileToggle?.focus());
+		}
+	},
+
+	closeOnEscape(event) {
+		if (! this.open || event.defaultPrevented) {
+			return;
+		}
+
+		this.closeMenu(true);
+	},
+
+	async addToPhone() {
+		if (! deferredInstallPrompt) {
+			this.showInstallGuidance();
+			return;
+		}
+
+		const prompt = deferredInstallPrompt;
+		deferredInstallPrompt = null;
+
+		try {
+			const result = await prompt.prompt();
+
+			if (result.outcome === 'accepted') {
+				this.canOfferInstall = false;
+			}
+		} catch {
+			this.showInstallGuidance();
+		}
+	},
+
+	showInstallGuidance() {
+		this.closeMenu();
+		this.$nextTick(() => {
+			this.$refs.mobileToggle?.focus();
+			this.$dispatch('open-modal', 'install-guidance');
+		});
+	},
+
+	handleAppInstalled() {
+		deferredInstallPrompt = null;
+		this.canOfferInstall = false;
+	},
+}));
 
 document.addEventListener('alpine:initialized', () => {
 	window.setTimeout(() => {

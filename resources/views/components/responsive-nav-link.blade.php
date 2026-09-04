@@ -2,10 +2,10 @@
 
 @php
 $classes = ($active ?? false)
-            ? 'block w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] px-4 py-3 text-start text-base font-semibold text-[var(--tp-bark)] shadow-sm transition duration-150 ease-in-out'
-            : 'block w-full rounded-[1rem] px-4 py-3 text-start text-base font-semibold text-[var(--tp-muted)] transition duration-150 ease-in-out hover:bg-[var(--tp-surface-raised)] hover:text-[var(--tp-bark)]';
+            ? 'flex min-h-12 w-full items-center rounded-[0.9rem] bg-[rgba(26,140,145,0.09)] px-4 py-3 text-start text-base font-bold text-[var(--tp-bark)] transition duration-150 ease-in-out'
+            : 'flex min-h-12 w-full items-center rounded-[0.9rem] px-4 py-3 text-start text-base font-semibold text-[var(--tp-muted)] transition duration-150 ease-in-out hover:bg-[var(--tp-surface-muted)] hover:text-[var(--tp-bark)]';
 @endphp
 
-<a {{ $attributes->merge(['class' => $classes]) }}>
-    {{ $slot }}
+<a {{ $attributes->merge(['class' => $classes]) }} @if ($active ?? false) aria-current="page" @endif>
+    <span>{{ $slot }}</span>
 </a>

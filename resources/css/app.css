@@ -38,6 +38,10 @@
 		--tp-error: #913c19;
 		--tp-link: #5f4838;
 		--tp-surface-border: #a44e06;
+		--tp-surface-action: var(--tp-ember);
+		--tp-surface-booking: var(--tp-sand);
+		--tp-surface-settings: var(--tp-pine);
+		--tp-surface-guidance: var(--tp-lake);
 		--tp-gold-solid: #875f09;
 		--tp-focus: #147277;
 		--tp-focus-ring: #147277;
@@ -140,9 +144,25 @@
 
 	.tp-surface {
 		@apply rounded-[1.5rem] border-2;
-		border-color: var(--tp-ember);
+		border-color: var(--tp-surface-accent, var(--tp-surface-action));
 		background: var(--tp-surface);
 		box-shadow: none;
+	}
+
+	.tp-surface--action {
+		--tp-surface-accent: var(--tp-surface-action);
+	}
+
+	.tp-surface--booking {
+		--tp-surface-accent: var(--tp-surface-booking);
+	}
+
+	.tp-surface--settings {
+		--tp-surface-accent: var(--tp-surface-settings);
+	}
+
+	.tp-surface--guidance {
+		--tp-surface-accent: var(--tp-surface-guidance);
 	}
 
 	.tp-surface-subtle {
@@ -259,19 +279,6 @@
 
 		.tp-date-range-input::placeholder {
 			font-size: 0.6875rem;
-		}
-	}
-
-	@media (max-width: 639px) {
-		.tp-surface {
-			border-width: 0;
-			border-radius: 0;
-		}
-
-		.tp-calendar-surface.tp-surface,
-		.home-surface.tp-surface {
-			border-width: 2px;
-			border-radius: 1.5rem;
 		}
 	}
 

@@ -24,6 +24,30 @@ async function login(page, email = 'admin@example.test') {
     await expect(page).toHaveURL(/\/dashboard/);
 }
 
+async function assertMobileSurfaces(page, selector, expectedColor) {
+    const metrics = await page.locator(selector).evaluateAll((elements) => elements.map((element) => {
+        const styles = window.getComputedStyle(element);
+        const bounds = element.getBoundingClientRect();
+
+        return {
+            borderColor: styles.borderTopColor,
+            borderWidth: styles.borderTopWidth,
+            radius: Number.parseFloat(styles.borderTopLeftRadius),
+            x: bounds.x,
+            right: bounds.right,
+        };
+    }));
+
+    expect(metrics.length).toBeGreaterThan(0);
+    for (const metric of metrics) {
+        expect(metric.borderColor).toBe(expectedColor);
+        expect(metric.borderWidth).toBe('2px');
+        expect(metric.radius).toBeGreaterThanOrEqual(24);
+        expect(metric.x).toBeGreaterThanOrEqual(12);
+        expect(metric.right).toBeLessThanOrEqual((await page.viewportSize()).width - 12);
+    }
+}
+
 test('public routes have clean automated scans and document structure', async ({ page }) => {
     for (const route of ['/', '/login', '/register', '/forgot-password', '/approval-pending']) {
         await page.goto(route);
@@ -94,6 +118,43 @@ test('living-area legend uses prominent identifying bullets without mobile overf
     }
 
     await page.setViewportSize({ width: 320, height: 800 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test('mobile task surfaces stay inset, rounded, and color-coded', async ({ page }) => {
+    await login(page);
+
+    for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.goto('/dashboard');
+
+        await assertMobileSurfaces(page, '.tp-calendar-surface.tp-surface--action', 'rgb(237, 112, 9)');
+        await assertMobileSurfaces(page, '[data-your-bookings].tp-surface--booking', 'rgb(231, 163, 15)');
+
+        const dashboardAlignment = await page.locator('[data-calendar-overview], [data-your-bookings]').evaluateAll((elements) => elements.map((element) => {
+            const bounds = element.getBoundingClientRect();
+            return { x: bounds.x, width: bounds.width };
+        }));
+        expect(dashboardAlignment).toHaveLength(2);
+        expect(dashboardAlignment[0].x).toBe(dashboardAlignment[1].x);
+        expect(dashboardAlignment[0].width).toBe(dashboardAlignment[1].width);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+        await page.goto('/admin');
+        await assertMobileSurfaces(page, 'section.tp-surface--guidance', 'rgb(111, 116, 41)');
+        await assertMobileSurfaces(page, 'article.tp-surface--booking', 'rgb(231, 163, 15)');
+        await assertMobileSurfaces(page, 'section.tp-surface--settings', 'rgb(26, 140, 145)');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+        await page.goto('/profile');
+        await assertMobileSurfaces(page, '.tp-surface--settings', 'rgb(26, 140, 145)');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    }
+
+    await page.context().clearCookies();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/login');
+    await assertMobileSurfaces(page, '.tp-surface--action', 'rgb(237, 112, 9)');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
@@ -176,13 +237,131 @@ test('account deletion dialog is named, modal, escapable, and restores focus', a
 test('mobile navigation exposes state, closes with Escape, and does not overflow', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 800 });
     await login(page);
-    const toggle = page.getByRole('button', { name: 'Toggle navigation' });
+    const toggle = page.locator('button[aria-controls="mobile-navigation"]');
+    const pageContent = page.locator('header').filter({ has: page.locator('.tp-part-legend') });
+    const contentTopBeforeOpen = (await pageContent.boundingBox()).y;
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(toggle).toHaveAccessibleName('Close');
+    const scrim = page.locator('[data-mobile-menu-scrim]');
+    await expect(scrim).toBeVisible();
+    await expect(page.locator('[data-mobile-menu-panel]')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Go to' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your account' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add Thunderpoint to your phone' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Calendar', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('#mobile-navigation')).not.toContainText('admin@example.test');
+    expect((await toggle.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    expect(Math.abs((await pageContent.boundingBox()).y - contentTopBeforeOpen)).toBeLessThanOrEqual(1);
+    await assertNoAxeViolations(page, 'open mobile navigation');
+    const scrimBox = await scrim.boundingBox();
+    await scrim.click({ position: { x: 8, y: scrimBox.height - 8 } });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(toggle).toHaveAccessibleName('Menu');
+    await toggle.click();
     await page.keyboard.press('Escape');
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await expect(toggle).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test('desktop account menu exposes state and restores focus on Escape', async ({ page }) => {
+    await login(page);
+    const accountToggle = page.locator('button[aria-controls="account-menu"]');
+    await expect(accountToggle).toContainText('Account');
+    await accountToggle.click();
+    await expect(accountToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#account-menu')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(accountToggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(accountToggle).toBeFocused();
+});
+
+test('mobile install guidance is accessible and restores focus to the menu control', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await login(page);
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByRole('button', { name: 'Add Thunderpoint to your phone' }).click();
+
+    const dialog = page.getByRole('dialog', { name: 'Add Thunderpoint to your phone' });
+    await expect(dialog).toBeVisible();
+    await expect(page.locator('#install-guidance-title')).toBeFocused();
+    await expect(dialog).toContainText('Install app or Add to Home Screen');
+    await assertNoAxeViolations(page, 'install guidance dialog');
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Menu' })).toBeFocused();
+});
+
+test('mobile install action uses a native prompt and hides after acceptance', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.__installPromptCalls = 0;
+        window.addEventListener('DOMContentLoaded', () => {
+            const event = new Event('beforeinstallprompt');
+            Object.defineProperty(event, 'prompt', {
+                value: async () => {
+                    window.__installPromptCalls += 1;
+                    return { outcome: 'accepted', platform: 'web' };
+                },
+            });
+            window.dispatchEvent(event);
+        });
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await login(page);
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByRole('button', { name: 'Add Thunderpoint to your phone' }).click();
+
+    await expect.poll(() => page.evaluate(() => window.__installPromptCalls)).toBe(1);
+    await expect(page.locator('[data-install-section]')).toBeHidden();
+});
+
+test('dismissed native install remains available with guidance on the next attempt', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.addEventListener('DOMContentLoaded', () => {
+            const event = new Event('beforeinstallprompt');
+            Object.defineProperty(event, 'prompt', {
+                value: async () => ({ outcome: 'dismissed', platform: 'web' }),
+            });
+            window.dispatchEvent(event);
+        });
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await login(page);
+    await page.getByRole('button', { name: 'Menu' }).click();
+    const installButton = page.getByRole('button', { name: 'Add Thunderpoint to your phone' });
+    await installButton.click();
+    await expect(installButton).toBeVisible();
+    await installButton.click();
+
+    await expect(page.getByRole('dialog', { name: 'Add Thunderpoint to your phone' })).toBeVisible();
+});
+
+test('mobile install guidance gives iPhone-specific steps', async ({ page }) => {
+    await page.addInitScript(() => {
+        Object.defineProperty(window.navigator, 'userAgent', { value: 'Mozilla/5.0 (iPhone)' });
+        Object.defineProperty(window.navigator, 'platform', { value: 'iPhone' });
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await login(page);
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByRole('button', { name: 'Add Thunderpoint to your phone' }).click();
+
+    const dialog = page.getByRole('dialog', { name: 'Add Thunderpoint to your phone' });
+    await expect(dialog).toContainText('Tap the Share button.');
+    await expect(dialog).toContainText('Choose Add to Home Screen.');
+});
+
+test('mobile install action is hidden in standalone display mode', async ({ page }) => {
+    await page.addInitScript(() => {
+        Object.defineProperty(window.navigator, 'standalone', { value: true });
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await login(page);
+    await page.getByRole('button', { name: 'Menu' }).click();
+
+    await expect(page.locator('[data-install-section]')).toBeHidden();
 });
 
 test('date picker stays within a narrow booking dialog', async ({ page }) => {

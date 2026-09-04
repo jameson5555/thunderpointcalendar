@@ -7,7 +7,7 @@
         </div>
     </x-slot>
 
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-3 py-8 sm:px-6 lg:px-8">
         @php
             $livingAreaColorMap = $livingAreas->mapWithKeys(fn ($area) => [$area->name => [
                 'background' => $area->deep_color,
@@ -27,7 +27,7 @@
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <section class="space-y-6">
-                <section class="tp-surface p-5 sm:p-6">
+                <section class="tp-surface tp-surface--guidance p-5 sm:p-6">
                     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
                             <p class="tp-meta">Start here</p>
@@ -75,7 +75,7 @@
                                 default => 'text-[var(--tp-muted)]',
                             };
                         @endphp
-                        <article id="booking-group-{{ $booking['group'] }}" class="tp-surface p-5">
+                        <article id="booking-group-{{ $booking['group'] }}" class="tp-surface tp-surface--booking p-5">
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div>
                                     <div class="flex flex-wrap gap-2">
@@ -240,7 +240,7 @@
                 </div>
 
                 @if ($isAdminView)
-                    <section class="tp-surface p-5">
+                    <section class="tp-surface tp-surface--guidance p-5">
                         <div>
                             <p class="tp-meta">User approvals</p>
                             <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Pending account approvals</h3>
@@ -276,7 +276,7 @@
                         </div>
                     </section>
 
-                    <section class="tp-surface p-5">
+                    <section class="tp-surface tp-surface--settings p-5">
                         <div>
                             <p class="tp-meta">User roles</p>
                             <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Assign Poobahs by living area</h3>
@@ -322,7 +322,7 @@
             </section>
 
             <aside class="space-y-6">
-                <section class="tp-surface p-5 sm:p-6">
+                <section class="tp-surface tp-surface--settings p-5 sm:p-6">
                     <div>
                         <p class="tp-meta">Area settings</p>
                         <h3 class="mt-2 font-display text-2xl text-[var(--tp-bark)]">Names and booking messages</h3>

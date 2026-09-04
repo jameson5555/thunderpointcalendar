@@ -37,7 +37,7 @@
                                 this.$nextTick(() => this.$refs[`${next}Tab`]?.focus());
                             },
                         }"
-                        class="home-surface tp-surface bg-[var(--tp-surface)] p-5 sm:p-6 lg:p-7"
+                        class="tp-surface tp-surface--action p-5 sm:p-6 lg:p-7"
                     >
                         <div class="mb-6 flex justify-center">
                             <div class="font-display text-[2rem] leading-none text-[var(--tp-bark)] min-[400px]:text-[2.7rem] sm:text-[3.2rem]">Thunderpoint</div>
