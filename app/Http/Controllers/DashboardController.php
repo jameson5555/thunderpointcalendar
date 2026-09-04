@@ -159,7 +159,6 @@ class DashboardController extends Controller
                 $lanes[$lane] = $columnEnd - 1;
 
                 $deepColor = $booking->livingArea?->deep_color ?? '#4a3422';
-                $labelColor = $booking->livingArea?->labelColor() ?? '#fffdf5';
                 $baseClasses = 'min-h-6 truncate px-2 py-1 text-[10px] font-semibold leading-4 sm:px-2.5 sm:text-[11px]';
 
                 if ($booking->status === Booking::STATUS_ACTIVE) {
@@ -173,7 +172,7 @@ class DashboardController extends Controller
                         'end_date' => $booking->end_date->format('M j, Y'),
                         'status_label' => 'Confirmed',
                         'style' => $baseClasses,
-                        'inline_style' => sprintf('background-color: %s; color: %s;', $deepColor, $labelColor),
+                        'inline_style' => sprintf('background-color: %s; color: #fff;', $deepColor),
                         'column_start' => $columnStart,
                         'column_end' => $columnEnd,
                         'lane' => $lane + 1,
@@ -197,7 +196,7 @@ class DashboardController extends Controller
                     'end_date' => $booking->end_date->format('M j, Y'),
                     'status_label' => 'Draft',
                     'style' => $baseClasses.' border border-dashed border-[var(--tp-paper-soft)]',
-                    'inline_style' => sprintf('background-color: %s; color: %s;', $deepColor, $labelColor),
+                    'inline_style' => sprintf('background-color: %s; color: #fff;', $deepColor),
                     'column_start' => $columnStart,
                     'column_end' => $columnEnd,
                     'lane' => $lane + 1,
