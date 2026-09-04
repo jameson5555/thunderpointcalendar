@@ -28,7 +28,7 @@
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <section class="space-y-6">
                 <section class="tp-surface tp-surface--guidance p-5 sm:p-6">
-                    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div class="space-y-5">
                         <div>
                             <p class="tp-meta">Start here</p>
                             <h2 class="mt-2 tp-heading-section">Bookings to review and update</h2>
@@ -39,7 +39,7 @@
                             </p>
                         </div>
 
-                        <div class="grid gap-3 sm:grid-cols-3 lg:min-w-[25rem]">
+                        <div class="grid gap-3 sm:grid-cols-3">
                             <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] px-4 py-3">
                                 <p class="tp-meta">Needs approval</p>
                                 <p class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $draftBookingCount }}</p>
@@ -57,12 +57,12 @@
                 </section>
 
                 <section>
-                    <div class="flex items-end justify-between gap-4">
+                    <div>
                         <div>
                             <p class="tp-meta">Booking queue</p>
                             <h2 class="mt-2 tp-heading-section">All booking groups for this page</h2>
                         </div>
-                        <p class="text-sm leading-6 text-[var(--tp-muted)]">Newest stays and requests appear first.</p>
+                        <p class="mt-2 text-sm leading-6 text-[var(--tp-muted)]">Newest stays and requests appear first.</p>
                     </div>
                 </section>
 
