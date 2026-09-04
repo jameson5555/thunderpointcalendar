@@ -5,7 +5,7 @@
     @keydown.escape.window="closeOnEscape($event)"
 >
     <nav
-        class="relative z-40 border-b border-[var(--tp-border)] bg-[var(--tp-shell)]"
+        class="relative z-40 border-b-2 border-[var(--tp-border-strong)] bg-[var(--tp-nav)]"
         aria-label="Primary navigation"
         @click.outside="closeMenu()"
     >
@@ -125,7 +125,7 @@
             x-transition:leave="transition ease-in duration-150 motion-reduce:transition-none"
             x-transition:leave-start="translate-y-0 opacity-100"
             x-transition:leave-end="-translate-y-2 opacity-0 motion-reduce:transform-none"
-            class="absolute inset-x-0 top-full z-50 max-h-[calc(100dvh-3.75rem)] overflow-y-auto overscroll-contain border-y border-[var(--tp-border-strong)] bg-[#fdfbf7] shadow-[0_16px_30px_rgba(70,45,27,0.16)] md:hidden"
+            class="absolute inset-x-0 top-full z-50 max-h-[calc(100dvh-3.75rem)] overflow-y-auto overscroll-contain border-y border-[var(--tp-border-strong)] bg-[var(--tp-nav)] shadow-[0_16px_30px_rgba(70,45,27,0.16)] md:hidden"
             data-mobile-menu-panel
         >
             <div class="mx-auto max-w-7xl space-y-4 px-4 pb-5 pt-4 sm:px-6">
