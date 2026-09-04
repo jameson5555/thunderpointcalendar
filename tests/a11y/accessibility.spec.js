@@ -207,6 +207,11 @@ test('booking dialog and date picker contain focus and restore it on Escape', as
     expect(bookingBarHeights.every((height) => height >= 24)).toBe(true);
     await assertNoAxeViolations(page, 'open booking and date picker dialogs');
 
+    await page.getByRole('button', { name: 'June 20, 2030' }).click();
+    await expect(arrivalInput).toHaveValue('06/20/2030');
+    await expect(picker).toBeHidden();
+
+    await page.getByRole('button', { name: 'Choose arrival date from calendar' }).click();
     await picker.getByRole('button', { name: 'Close' }).focus();
     await page.keyboard.press('Tab');
     expect(await page.evaluate(() => document.querySelector('#calendar_booking_dates__picker')?.contains(document.activeElement))).toBe(true);

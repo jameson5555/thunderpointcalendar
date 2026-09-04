@@ -29,7 +29,6 @@
     })"
     x-init="init()"
     @calendar-booking-dates.window="setDates($event.detail.startDate, $event.detail.endDate, $event.detail.disabledRangesByArea)"
-    class="space-y-2"
     data-date-range-picker
 >
     <legend class="sr-only">{{ $label }}</legend>

@@ -181,7 +181,12 @@ Alpine.data('dateRangePicker', ({
 				selectionDatesMode: 'single',
 				selectedDates: this.selectedDateForActiveField(),
 				disableDates: this.currentUnavailableRanges.map((range) => this.rangeString(range.from, range.to)),
-				onClickDate: (instance) => this.selectCalendarDate(instance.context.selectedDates[0] ?? ''),
+				onClickDate: (_instance, event) => {
+					const dateButton = event.target.closest('[data-vc-date-btn]');
+					const date = dateButton?.closest('[data-vc-date]')?.dataset.vcDate ?? '';
+
+					this.selectCalendarDate(date);
+				},
 				labels: {
 					application: 'Choose a date',
 					dates: 'Available dates',

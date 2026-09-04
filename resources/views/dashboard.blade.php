@@ -168,8 +168,8 @@
                     <button type="button" class="absolute inset-0 bg-[rgba(78,59,46,0.55)]" aria-label="Close calendar dialog" data-calendar-modal-backdrop @click="closeModal()"></button>
 
                     <div x-ref="dialog" class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-[1.5rem] bg-[var(--tp-paper-soft)] shadow-2xl sm:max-h-[90vh] sm:max-w-2xl sm:rounded-[1.5rem]" @keydown.tab="trapFocus($event)">
-                        <header class="flex shrink-0 items-start justify-between gap-4 border-b border-[var(--tp-border)] px-5 py-4 sm:px-6">
-                            <div class="flex min-w-0 items-start gap-3">
+                        <header class="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--tp-border)] px-5 py-4 sm:px-6">
+                            <div class="flex min-w-0 items-center gap-3">
                                 <button x-show="canGoBack" type="button" class="tp-calendar-nav-button -ml-2 shrink-0" aria-label="Back to day agenda" @click="backToAgenda()">
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                         <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -187,7 +187,7 @@
                             </button>
                         </header>
 
-                        <div class="overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+                        <div class="overflow-y-auto px-5 pb-5 pt-3 sm:px-6 sm:pb-6 sm:pt-4">
                             <section x-show="mode === 'agenda'" data-calendar-day-agenda>
                                 <div class="flex items-center justify-between gap-4">
                                     <p class="text-sm leading-6 text-[var(--tp-muted)]" x-text="`${selectedDayBookings.length} ${selectedDayBookings.length === 1 ? 'booking' : 'bookings'}`"></p>
@@ -254,8 +254,8 @@
                                         @foreach ($livingAreas as $area)
                                             <label class="flex min-h-12 items-center gap-2 rounded-[0.9rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-3 py-2.5 shadow-sm transition hover:border-[var(--tp-border-strong)]">
                                                 <input type="checkbox" name="living_area_ids[]" value="{{ $area->id }}" x-model="form.areaIds" :disabled="form.lockAreas" class="h-4 w-4 shrink-0 rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] focus:ring-[var(--tp-focus)]">
-                                                <span class="min-w-0 truncate text-sm font-semibold text-[var(--tp-bark)]">
-                                                    <span aria-hidden="true" class="mr-1 inline-flex h-3 w-3 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
+                                                <span class="flex min-w-0 items-center gap-1 truncate text-sm font-semibold text-[var(--tp-bark)]">
+                                                    <span aria-hidden="true" class="inline-flex h-3 w-3 shrink-0 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                                     {{ str_ends_with($area->name, ' Part') ? substr($area->name, 0, -5) : $area->name }}
                                                 </span>
                                             </label>
@@ -294,12 +294,12 @@
                                     <textarea id="calendar_note" name="note" rows="3" x-model="form.note" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-[var(--tp-bark)] shadow-sm placeholder:text-[var(--tp-muted)] focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]" placeholder="Optional note"></textarea>
                                 </div>
 
-                                <details class="group rounded-[1rem] border-2 border-[var(--tp-olive)] bg-transparent text-sm leading-6 text-[var(--tp-muted)]">
-                                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-semibold text-[var(--tp-bark)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--tp-focus)]">
+                                <details class="group text-sm leading-6 text-[var(--tp-muted)]">
+                                    <summary class="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 px-1 py-2 font-semibold text-[var(--tp-bark)]">
                                         View pricing
                                         <svg class="h-4 w-4 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
                                     </summary>
-                                    <ul class="list-disc space-y-1 px-4 pb-4 pl-9">
+                                    <ul class="mt-2 list-disc space-y-1 pl-6">
                                         <li>$10 per night if you are the Poobah for the living area you are booking.</li>
                                         <li>$20 per night for standard bookings.</li>
                                         <li>$500 for booking all four living areas for a full 7-night week.</li>
