@@ -47,7 +47,7 @@ $maxWidth = [
     class="tp-native-dialog fixed inset-0 m-0 h-full max-h-none w-full max-w-none overflow-y-auto border-0 bg-transparent px-4 py-6 sm:px-6"
 >
     <div class="flex min-h-full items-center justify-center">
-        <div class="w-full {{ $maxWidth }} overflow-hidden rounded-lg bg-white shadow-xl">
+        <div class="w-full {{ $maxWidth }} overflow-hidden rounded-lg bg-[var(--tp-surface-raised)] shadow-xl">
             {{ $slot }}
         </div>
     </div>

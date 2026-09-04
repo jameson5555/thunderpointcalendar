@@ -75,6 +75,28 @@ test('admin, dashboard, and profile pass scans for both user roles', async ({ pa
     await assertNoAxeViolations(page, 'standard member dashboard');
 });
 
+test('living-area legend uses prominent identifying bullets without mobile overflow', async ({ page }) => {
+    await login(page);
+    const legendItems = page.locator('.tp-part-legend-item');
+    const legendMarkers = page.locator('.tp-part-legend-marker');
+    const expectedColors = [
+        'rgb(237, 112, 9)',
+        'rgb(26, 140, 145)',
+        'rgb(231, 163, 15)',
+        'rgb(111, 116, 41)',
+    ];
+
+    await expect(legendItems).toHaveCount(expectedColors.length);
+    await expect(legendMarkers).toHaveCount(expectedColors.length);
+    for (let index = 0; index < expectedColors.length; index += 1) {
+        await expect(legendMarkers.nth(index)).toHaveCSS('background-color', expectedColors[index]);
+        expect((await legendMarkers.nth(index).boundingBox()).width).toBeGreaterThanOrEqual(12);
+    }
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
 test('booking dialog and date picker contain focus and restore it on Escape', async ({ page }) => {
     await login(page);
     const trigger = page.locator('[data-calendar-day][aria-label^="Create booking starting"]').first();
@@ -206,9 +228,14 @@ test('approved text color pairs meet normal-text contrast', async () => {
         ['#1A8C91', '#17120F'],
         ['#E7A30F', '#17120F'],
         ['#6F7429', '#FFFDF5'],
-        ['#913C19', '#F7F0D7'],
-        ['#147277', '#F7F0D7'],
-        ['#5F4838', '#F7F0D7'],
+        ['#913C19', '#F4E8CD'],
+        ['#147277', '#F4E8CD'],
+        ['#5F4838', '#F4E8CD'],
+        ['#4E3B2E', '#D9C89E'],
+        ['#4E3B2E', '#E4D6B3'],
+        ['#4E3B2E', '#D5C08D'],
+        ['#6F5540', '#E2D2AB'],
+        ['#6F5540', '#F4E8CD'],
     ];
     const luminance = (hex) => {
         const channels = hex.match(/[a-f\d]{2}/gi).map((value) => Number.parseInt(value, 16) / 255)

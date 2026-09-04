@@ -21,7 +21,7 @@
             @include('layouts.navigation')
 
             @isset($header)
-                <header class="relative z-10 border-b border-[var(--tp-border)] bg-[rgba(245,237,212,0.96)]">
+                <header class="relative z-10 border-b border-[var(--tp-border)] bg-[var(--tp-shell)]">
                     <div class="mx-auto max-w-7xl px-3 py-2.5 sm:px-6 sm:py-6 lg:px-8">
                         {{ $header }}
                     </div>

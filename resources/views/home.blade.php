@@ -37,10 +37,10 @@
                                 this.$nextTick(() => this.$refs[`${next}Tab`]?.focus());
                             },
                         }"
-                        class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7"
+                        class="home-surface tp-surface bg-[var(--tp-surface)] p-5 sm:p-6 lg:p-7"
                     >
                         <div class="mb-6 flex justify-center">
-                            <div class="font-display text-[2.7rem] leading-none text-[var(--tp-bark)] sm:text-[3.2rem]">Thunderpoint</div>
+                            <div class="font-display text-[2rem] leading-none text-[var(--tp-bark)] min-[400px]:text-[2.7rem] sm:text-[3.2rem]">Thunderpoint</div>
                         </div>
 
                         @auth
@@ -63,9 +63,9 @@
                             </div>
                         @else
                             <h1 class="sr-only">Sign in or register</h1>
-                            <div class="grid grid-cols-2 gap-2 rounded-full bg-[rgba(226,208,181,0.4)] p-1" role="tablist" aria-label="Account access">
-                                <button id="login-tab" x-ref="loginTab" type="button" role="tab" aria-controls="login-panel" :aria-selected="(panel === 'login').toString()" :tabindex="panel === 'login' ? 0 : -1" @click="panel = 'login'" @keydown.right.prevent="selectPanel('register')" @keydown.end.prevent="selectPanel('register')" :class="panel === 'login' ? 'bg-[rgba(255,252,247,0.96)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Sign in</button>
-                                <button id="register-tab" x-ref="registerTab" type="button" role="tab" aria-controls="register-panel" :aria-selected="(panel === 'register').toString()" :tabindex="panel === 'register' ? 0 : -1" @click="panel = 'register'" @keydown.left.prevent="selectPanel('login')" @keydown.home.prevent="selectPanel('login')" :class="panel === 'register' ? 'bg-[rgba(255,252,247,0.96)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Register</button>
+                            <div class="grid grid-cols-2 gap-2 rounded-full bg-[var(--tp-surface-muted)] p-1" role="tablist" aria-label="Account access">
+                                <button id="login-tab" x-ref="loginTab" type="button" role="tab" aria-controls="login-panel" :aria-selected="(panel === 'login').toString()" :tabindex="panel === 'login' ? 0 : -1" @click="panel = 'login'" @keydown.right.prevent="selectPanel('register')" @keydown.end.prevent="selectPanel('register')" :class="panel === 'login' ? 'bg-[var(--tp-surface-raised)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Sign in</button>
+                                <button id="register-tab" x-ref="registerTab" type="button" role="tab" aria-controls="register-panel" :aria-selected="(panel === 'register').toString()" :tabindex="panel === 'register' ? 0 : -1" @click="panel = 'register'" @keydown.left.prevent="selectPanel('login')" @keydown.home.prevent="selectPanel('login')" :class="panel === 'register' ? 'bg-[var(--tp-surface-raised)] text-[var(--tp-bark)] shadow-sm' : 'text-[var(--tp-muted)]'" class="rounded-full px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition">Register</button>
                             </div>
 
                             <div id="login-panel" role="tabpanel" aria-labelledby="login-tab" x-show="panel === 'login'" x-cloak class="mt-6">

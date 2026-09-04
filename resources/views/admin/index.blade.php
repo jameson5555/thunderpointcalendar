@@ -40,15 +40,15 @@
                         </div>
 
                         <div class="grid gap-3 sm:grid-cols-3 lg:min-w-[25rem]">
-                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] px-4 py-3">
+                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] px-4 py-3">
                                 <p class="tp-meta">Needs approval</p>
                                 <p class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $draftBookingCount }}</p>
                             </div>
-                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] px-4 py-3">
+                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] px-4 py-3">
                                 <p class="tp-meta">Confirmed stays</p>
                                 <p class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $activeBookingCount }}</p>
                             </div>
-                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] px-4 py-3">
+                            <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] px-4 py-3">
                                 <p class="tp-meta">Closed items</p>
                                 <p class="mt-2 font-display text-3xl text-[var(--tp-bark)]">{{ $completedBookingCount }}</p>
                             </div>
@@ -92,7 +92,7 @@
                                 <span class="text-xs font-semibold uppercase tracking-[0.16em] {{ $statusClass }}">{{ ucfirst($booking['status']) }}</span>
                             </div>
 
-                            <div class="mt-5 grid gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] p-4 text-sm text-[var(--tp-bark)] md:grid-cols-2">
+                            <div class="mt-5 grid gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] p-4 text-sm text-[var(--tp-bark)] md:grid-cols-2">
                                 <div>
                                     <p class="tp-meta">Amount</p>
                                     <p class="mt-1 font-semibold">${{ number_format(($booking['amount_cents'] ?? 0) / 100, 0) }}</p>
@@ -112,7 +112,7 @@
                             </div>
 
                             @if ($booking['note'])
-                                <div class="mt-4 rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] px-4 py-3 text-sm leading-6 text-[var(--tp-muted)]">
+                                <div class="mt-4 rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] px-4 py-3 text-sm leading-6 text-[var(--tp-muted)]">
                                     {{ $booking['note'] }}
                                 </div>
                             @endif
@@ -124,7 +124,7 @@
                                     <x-primary-button class="justify-center">{{ __($isAdminView ? 'Approve Draft Booking' : 'Approve My Area Draft') }}</x-primary-button>
                                 </form>
                             @elseif ($booking['status'] === 'active')
-                                <details class="mt-5 rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] px-4 py-4">
+                                <details class="mt-5 rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] px-4 py-4">
                                     <summary class="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-text-accent)]"><span class="ml-2">Edit or cancel this stay</span></summary>
 
                                     <form method="POST" action="{{ route('admin.bookings.update', $booking['group']) }}" class="mt-4 space-y-4">
@@ -150,7 +150,7 @@
                                             <x-input-label :value="__('Living Areas')" />
                                             <div class="mt-3 grid gap-3 sm:grid-cols-2">
                                                 @foreach ($livingAreas as $area)
-                                                    <label class="flex items-center gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.8)] px-4 py-3 text-sm font-semibold text-[var(--tp-bark)]">
+                                                    <label class="flex items-center gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-sm font-semibold text-[var(--tp-bark)]">
                                                         <input type="checkbox" name="living_area_ids[]" value="{{ $area->id }}" class="rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] focus:ring-[var(--tp-focus)]" @checked(collect(old('living_area_ids', $booking['area_ids']->all()))->contains($area->id))>
                                                         <span aria-hidden="true" class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                                         <span>{{ $area->name }}</span>
@@ -161,13 +161,13 @@
 
                                         <div>
                                             <x-input-label :for="'edit_note_'.$booking['group']" :value="__('Stay Note')" />
-                                            <textarea id="{{ 'edit_note_'.$booking['group'] }}" name="note" rows="4" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">{{ old('note', $booking['note']) }}</textarea>
+                                            <textarea id="{{ 'edit_note_'.$booking['group'] }}" name="note" rows="4" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">{{ old('note', $booking['note']) }}</textarea>
                                         </div>
 
                                         <div class="grid gap-4 md:grid-cols-2">
                                             <div>
                                                 <x-input-label :for="'edit_payment_method_'.$booking['group']" :value="__('Payment Method')" />
-                                                <select id="{{ 'edit_payment_method_'.$booking['group'] }}" name="payment_method" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">
+                                                <select id="{{ 'edit_payment_method_'.$booking['group'] }}" name="payment_method" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">
                                                     @foreach ($paymentMethods as $paymentValue => $paymentLabel)
                                                         <option value="{{ $paymentValue }}" @selected(old('payment_method', $booking['payment_method']) === $paymentValue)>{{ $paymentLabel }}</option>
                                                     @endforeach
@@ -198,7 +198,7 @@
                                 </p>
                             @endif
 
-                            <details class="mt-5 rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] px-4 py-4">
+                            <details class="mt-5 rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] px-4 py-4">
                                 <summary class="cursor-pointer text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tp-text-accent)]"><span class="ml-2">Booking history</span></summary>
 
                                 <div class="mt-4 grid gap-4 lg:grid-cols-2">
@@ -233,7 +233,7 @@
                             </details>
                         </article>
                     @empty
-                        <div class="rounded-[1rem] border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.55)] px-5 py-8 text-center text-sm leading-6 text-[var(--tp-muted)] md:col-span-2">
+                        <div class="rounded-[1rem] border border-dashed border-[var(--tp-border)] bg-[var(--tp-surface-muted)] px-5 py-8 text-center text-sm leading-6 text-[var(--tp-muted)] md:col-span-2">
                             No booking requests need attention right now.
                         </div>
                     @endforelse
@@ -269,7 +269,7 @@
                                     </div>
                                 </article>
                             @empty
-                                <div class="rounded-[1rem] border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.55)] px-5 py-6 text-sm leading-6 text-[var(--tp-muted)]">
+                                <div class="rounded-[1rem] border border-dashed border-[var(--tp-border)] bg-[var(--tp-surface-muted)] px-5 py-6 text-sm leading-6 text-[var(--tp-muted)]">
                                     No pending users right now.
                                 </div>
                             @endforelse
@@ -305,7 +305,7 @@
                                                     <span aria-hidden="true" class="inline-flex h-3.5 w-3.5 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
                                                 </div>
 
-                                                <select id="role_{{ $managedUser->id }}_{{ $area->id }}" name="role" class="mt-3 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-focus-ring)] focus:ring-[var(--tp-focus)]">
+                                                <select id="role_{{ $managedUser->id }}_{{ $area->id }}" name="role" class="mt-3 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-focus-ring)] focus:ring-[var(--tp-focus)]">
                                                     <option value="standard" @selected(! $managedUser->managedAreas->contains('id', $area->id))>Standard</option>
                                                     <option value="poobah" @selected($managedUser->managedAreas->contains('id', $area->id))>Poobah</option>
                                                 </select>
@@ -335,7 +335,7 @@
 
                     <div class="mt-6 space-y-4">
                         @foreach ($livingAreas as $area)
-                            <article class="rounded-[1rem] border border-[rgba(47,37,29,0.08)] bg-[rgba(253,251,247,0.76)] p-4">
+                            <article class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] p-4">
                                 <div class="flex items-center justify-between gap-3">
                                     <h4 class="font-display text-xl text-[var(--tp-bark)]">{{ $area->name }}</h4>
                                     <span aria-hidden="true" class="inline-flex h-4 w-4 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
@@ -352,7 +352,7 @@
 
                                     <div>
                                         <x-input-label :for="'booking_message_'.$area->id" :value="__('Booking Form Message')" />
-                                        <textarea id="{{ 'booking_message_'.$area->id }}" name="booking_message" rows="4" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">{{ old('booking_message', $area->booking_message) }}</textarea>
+                                        <textarea id="{{ 'booking_message_'.$area->id }}" name="booking_message" rows="4" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">{{ old('booking_message', $area->booking_message) }}</textarea>
                                     </div>
 
                                     <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(61,52,39,0.7)]">

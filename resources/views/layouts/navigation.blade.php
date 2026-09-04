@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" @keydown.escape.window="if (open) { open = false; $nextTick(() => $refs.mobileToggle.focus()); }" class="relative z-40 border-b border-[var(--tp-border)] bg-[rgba(245,237,212,0.96)]" aria-label="Primary navigation">
+<nav x-data="{ open: false }" @keydown.escape.window="if (open) { open = false; $nextTick(() => $refs.mobileToggle.focus()); }" class="relative z-40 border-b border-[var(--tp-border)] bg-[var(--tp-shell)]" aria-label="Primary navigation">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex min-h-[3.75rem] justify-between gap-4 py-2 md:min-h-20 md:py-4">
             <div class="flex min-w-0 items-center gap-6">
@@ -30,8 +30,8 @@
 
                 <x-dropdown align="right" width="48" id="account-menu">
                     <x-slot name="trigger">
-                        <button type="button" aria-controls="account-menu" :aria-expanded="open.toString()" class="inline-flex items-center gap-3 rounded-full border border-[var(--tp-border)] bg-[rgba(255,252,245,0.94)] px-3 py-2 text-sm font-semibold text-[var(--tp-bark)] shadow-sm transition hover:border-[rgba(221,79,22,0.24)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--tp-text-accent)] bg-[rgba(255,252,245,0.96)] font-display text-lg text-[var(--tp-text-accent)]">
+                        <button type="button" aria-controls="account-menu" :aria-expanded="open.toString()" class="inline-flex items-center gap-3 rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface)] px-3 py-2 text-sm font-semibold text-[var(--tp-bark)] shadow-sm transition hover:border-[rgba(221,79,22,0.24)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--tp-text-accent)] bg-[var(--tp-surface-raised)] font-display text-lg text-[var(--tp-text-accent)]">
                                 {{ strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}
                             </div>
                             <div class="text-left">
@@ -66,7 +66,7 @@
             </div>
 
             <div class="-me-2 flex items-center md:hidden">
-                <button x-ref="mobileToggle" @click="open = ! open" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--tp-border)] bg-[rgba(247,240,215,0.92)] text-[var(--tp-bark)] transition hover:border-[var(--tp-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]" aria-label="Toggle navigation" aria-controls="mobile-navigation" :aria-expanded="open.toString()">
+                <button x-ref="mobileToggle" @click="open = ! open" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface-muted)] text-[var(--tp-bark)] transition hover:border-[var(--tp-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)] focus:ring-offset-2 focus:ring-offset-[var(--tp-paper)]" aria-label="Toggle navigation" aria-controls="mobile-navigation" :aria-expanded="open.toString()">
                     <svg aria-hidden="true" class="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

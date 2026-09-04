@@ -7,8 +7,11 @@
                         ? substr($area['name'], 0, -5)
                         : $area['name'];
                 @endphp
-                <li class="tp-part-legend-item">
-                    <span aria-hidden="true" class="h-2 w-2 shrink-0 rounded-full sm:h-2.5 sm:w-2.5" style="background-color: {{ $area['deep_color'] }};"></span>
+                <li
+                    class="tp-part-legend-item"
+                    style="--tp-legend-color: {{ $area['deep_color'] }};"
+                >
+                    <span aria-hidden="true" class="tp-part-legend-marker shrink-0 rounded-full"></span>
                     <span>{{ $legendName }}</span>
                 </li>
             @endforeach
@@ -82,7 +85,7 @@
 
                         <div>
                             <div>
-                                <div class="grid grid-cols-7 border-b border-[var(--tp-border)] bg-[rgba(247,240,215,0.72)] text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--tp-muted)] md:text-xs md:tracking-[0.18em]">
+                                <div class="grid grid-cols-7 border-b border-[var(--tp-border)] bg-[var(--tp-surface-muted)] text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--tp-muted)] md:text-xs md:tracking-[0.18em]">
                                     @foreach ($weekdays as $weekday)
                                         <div class="px-1 py-2 md:px-2 md:py-3">{{ $weekday }}</div>
                                     @endforeach
@@ -100,7 +103,7 @@
                                             @foreach ($week['days'] as $day)
                                                 <button
                                                     type="button"
-                                                    class="group flex h-full items-start justify-start border-r border-[rgba(103,71,43,0.08)] px-2 py-2 text-left transition last:border-r-0 hover:bg-[rgba(26,140,145,0.08)] focus:z-10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--tp-focus)] md:px-3 md:py-3 {{ $day['isCurrentMonth'] ? 'bg-[rgba(255,252,245,0.92)]' : 'bg-[rgba(247,240,215,0.62)] text-[rgba(95,72,56,0.42)]' }} {{ $day['isToday'] ? 'ring-2 ring-inset ring-[rgba(221,79,22,0.35)]' : '' }}"
+                                                    class="group flex h-full items-start justify-start border-r border-[rgba(103,71,43,0.08)] px-2 py-2 text-left transition last:border-r-0 hover:bg-[rgba(26,140,145,0.08)] focus:z-10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--tp-focus)] md:px-3 md:py-3 {{ $day['isCurrentMonth'] ? 'bg-[var(--tp-surface)]' : 'bg-[var(--tp-surface-muted)] text-[rgba(95,72,56,0.42)]' }} {{ $day['isToday'] ? 'ring-2 ring-inset ring-[rgba(221,79,22,0.35)]' : '' }}"
                                                     aria-label="{{ count($day['bookingGroups']) > 0 ? 'View '.count($day['bookingGroups']).' bookings on ' : 'Create booking starting ' }}{{ $day['date']->format('F j, Y') }}"
                                                     aria-haspopup="dialog"
                                                     data-calendar-day
@@ -193,7 +196,7 @@
 
                                 <div class="mt-5 grid gap-3">
                                     <template x-for="booking in selectedDayBookings" :key="booking.group">
-                                        <button type="button" class="rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.9)] p-4 text-left transition hover:border-[var(--tp-border-strong)] hover:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)]" @click="openBooking(booking.group, null, true)">
+                                        <button type="button" class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] p-4 text-left transition hover:border-[var(--tp-border-strong)] hover:bg-[var(--tp-surface-raised)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-focus)]" @click="openBooking(booking.group, null, true)">
                                             <div class="flex items-start justify-between gap-4">
                                                 <div>
                                                     <p class="font-semibold text-[var(--tp-bark)]" x-text="booking.guestName"></p>
@@ -230,7 +233,7 @@
                                         <dd class="font-semibold text-[var(--tp-bark)]" x-text="selectedBooking?.statusLabel"></dd>
                                     </div>
                                 </dl>
-                                <p class="mt-6 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.72)] px-4 py-3 text-sm leading-6 text-[var(--tp-muted)]">You can view this booking, but you do not have permission to edit it.</p>
+                                <p class="mt-6 rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--tp-muted)]">You can view this booking, but you do not have permission to edit it.</p>
                             </section>
 
                             <form x-show="mode === 'form'" method="POST" :action="form.action" class="space-y-5" data-calendar-booking-form>
@@ -249,7 +252,7 @@
                                     <p class="mt-1 text-xs text-[var(--tp-muted)]" x-text="form.lockAreas ? 'Poobahs cannot change the parts on a confirmed stay.' : 'Choose one or more.'"></p>
                                     <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                                         @foreach ($livingAreas as $area)
-                                            <label class="flex min-h-12 items-center gap-2 rounded-[0.9rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.84)] px-3 py-2.5 shadow-sm transition hover:border-[var(--tp-border-strong)]">
+                                            <label class="flex min-h-12 items-center gap-2 rounded-[0.9rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-3 py-2.5 shadow-sm transition hover:border-[var(--tp-border-strong)]">
                                                 <input type="checkbox" name="living_area_ids[]" value="{{ $area->id }}" x-model="form.areaIds" :disabled="form.lockAreas" class="h-4 w-4 shrink-0 rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] focus:ring-[var(--tp-focus)]">
                                                 <span class="min-w-0 truncate text-sm font-semibold text-[var(--tp-bark)]">
                                                     <span aria-hidden="true" class="mr-1 inline-flex h-3 w-3 rounded-full" style="background-color: {{ $area->deep_color }};"></span>
@@ -288,7 +291,7 @@
 
                                 <div>
                                     <x-input-label for="calendar_note" :value="__('Note')" />
-                                    <textarea id="calendar_note" name="note" rows="3" x-model="form.note" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm placeholder:text-[var(--tp-muted)] focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]" placeholder="Optional note"></textarea>
+                                    <textarea id="calendar_note" name="note" rows="3" x-model="form.note" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-[var(--tp-bark)] shadow-sm placeholder:text-[var(--tp-muted)] focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]" placeholder="Optional note"></textarea>
                                 </div>
 
                                 <details class="group rounded-[1rem] border-2 border-[var(--tp-olive)] bg-transparent text-sm leading-6 text-[var(--tp-muted)]">
@@ -306,7 +309,7 @@
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div>
                                         <x-input-label for="calendar_payment_method" :value="__('Payment Method')" />
-                                        <select id="calendar_payment_method" name="payment_method" x-model="form.paymentMethod" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">
+                                        <select id="calendar_payment_method" name="payment_method" x-model="form.paymentMethod" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">
                                             @foreach ($paymentMethods as $methodValue => $methodLabel)
                                                 <option value="{{ $methodValue }}">{{ $methodLabel }}</option>
                                             @endforeach
@@ -319,7 +322,7 @@
                                 </div>
 
                                 @if ($canCreateConfirmedBookings)
-                                    <label x-show="! form.isEdit" class="flex items-start gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(253,251,247,0.76)] px-4 py-4 text-sm text-[var(--tp-bark)]">
+                                    <label x-show="! form.isEdit" class="flex items-start gap-3 rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] px-4 py-4 text-sm text-[var(--tp-bark)]">
                                         <input type="checkbox" name="book_as_draft" value="1" x-model="form.bookAsDraft" :disabled="form.isEdit" class="mt-1 h-4 w-4 rounded border-[var(--tp-border-strong)] text-[var(--tp-accent)] focus:ring-[var(--tp-focus)]">
                                         <span><span class="block font-semibold">Book as draft</span><span class="mt-1 block leading-6 text-[var(--tp-muted)]">Use this when the booking should wait for approval instead of going live right away.</span></span>
                                     </label>
@@ -354,10 +357,10 @@
                                         </div>
                                     </div>
 
-                                    <div class="min-w-56 space-y-2 rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,252,245,0.92)] p-4">
+                                    <div class="min-w-56 space-y-2 rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] p-4">
                                         <div class="flex items-center justify-between gap-2">
                                             <span class="tp-meta">Status</span>
-                                            <span class="text-xs font-semibold uppercase tracking-[0.16em] {{ $booking['status'] === 'active' ? 'text-[var(--tp-status)]' : 'rounded-full border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.72)] px-3 py-2 text-[var(--tp-muted)]' }}">{{ ucfirst($booking['status']) }}</span>
+                                            <span class="text-xs font-semibold uppercase tracking-[0.16em] {{ $booking['status'] === 'active' ? 'text-[var(--tp-status)]' : 'rounded-full border border-dashed border-[var(--tp-border)] bg-[var(--tp-surface-muted)] px-3 py-2 text-[var(--tp-muted)]' }}">{{ ucfirst($booking['status']) }}</span>
                                         </div>
                                         <div class="flex items-center justify-between gap-2">
                                             <span class="tp-meta">Amount</span>
@@ -377,7 +380,7 @@
 
                                         <div>
                                             <x-input-label for="payment_method_{{ $booking['group'] }}" :value="__('Payment Method')" />
-                                            <select id="payment_method_{{ $booking['group'] }}" name="payment_method" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(255,248,235,0.92)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">
+                                            <select id="payment_method_{{ $booking['group'] }}" name="payment_method" class="mt-2 w-full rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-control)] px-4 py-3 text-[var(--tp-bark)] shadow-sm focus:border-[var(--tp-ember)] focus:ring-[var(--tp-focus)]">
                                                 @foreach ($paymentMethods as $methodValue => $methodLabel)
                                                     <option value="{{ $methodValue }}" @selected(old('payment_method', $booking['payment_method']) === $methodValue)>{{ $methodLabel }}</option>
                                                 @endforeach
@@ -389,7 +392,7 @@
                                 @endif
                             </article>
                         @empty
-                            <div class="rounded-[1rem] border border-dashed border-[var(--tp-border)] bg-[rgba(253,251,247,0.55)] px-5 py-7 text-center text-sm leading-6 text-[var(--tp-muted)]">
+                            <div class="rounded-[1rem] border border-dashed border-[var(--tp-border)] bg-[var(--tp-surface-muted)] px-5 py-7 text-center text-sm leading-6 text-[var(--tp-muted)]">
                                 No bookings yet. Choose a date on the calendar to request a stay.
                             </div>
                         @endforelse

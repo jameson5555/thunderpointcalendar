@@ -6,7 +6,7 @@
 
 @if (count($summaryMessages))
     <section
-        {{ $attributes->merge(['class' => 'rounded-[1rem] border-2 border-[var(--tp-error)] bg-[rgba(255,248,235,0.96)] px-4 py-3 text-sm text-[var(--tp-bark)]']) }}
+        {{ $attributes->merge(['class' => 'rounded-[1rem] border-2 border-[var(--tp-error)] bg-[var(--tp-control)] px-4 py-3 text-sm text-[var(--tp-bark)]']) }}
         role="alert"
         tabindex="-1"
         data-error-summary

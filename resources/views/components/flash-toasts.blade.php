@@ -45,7 +45,7 @@
                     x-transition:leave-end="scale-95 opacity-0"
                     :class="toast.variant === 'error'
                         ? 'border-[rgba(122,74,86,0.72)] bg-[rgba(255,244,238,0.82)] text-[var(--tp-bark)]'
-                        : 'border-[var(--tp-status)] bg-[rgba(255,252,245,0.94)] text-[var(--tp-status)]'"
+                        : 'border-[var(--tp-status)] bg-[var(--tp-surface)] text-[var(--tp-status)]'"
                     class="pointer-events-auto overflow-hidden rounded-[1.25rem] border-[3px] px-4 py-4 shadow-[0_18px_40px_rgba(95,72,56,0.16)] backdrop-blur-md backdrop-saturate-150"
                     :role="toast.variant === 'error' ? 'alert' : 'status'"
                 >

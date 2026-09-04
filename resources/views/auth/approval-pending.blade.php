@@ -5,7 +5,7 @@
             <h1 class="font-display text-3xl text-[var(--tp-bark)]">Approval pending</h1>
         </div>
 
-        <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[rgba(253,251,247,0.76)] p-4 text-sm leading-6 text-[var(--tp-muted)]">
+        <div class="rounded-[1rem] border border-[var(--tp-border)] bg-[var(--tp-surface-raised)] p-4 text-sm leading-6 text-[var(--tp-muted)]">
             Once an admin approves your account, you can sign in from the home page and open the calendar. If approval has already gone through, try signing in again.
         </div>
 

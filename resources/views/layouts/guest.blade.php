@@ -21,9 +21,9 @@
         <div class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: image-set(url('{{ asset('images/thunderpoint-sunset.webp') }}') type('image/webp'), url('{{ asset('images/thunderpoint-sunset.jpg') }}') type('image/jpeg'));">
             <main id="main-content" tabindex="-1" class="mx-auto flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
                 <section class="w-full max-w-[600px]">
-                    <section class="home-surface tp-surface bg-[rgba(251,248,242,0.94)] p-5 sm:p-6 lg:p-7">
+                    <section class="home-surface tp-surface bg-[var(--tp-surface)] p-5 sm:p-6 lg:p-7">
                         <div class="mb-6 flex justify-center">
-                            <a href="{{ route('home') }}" class="font-display text-[2.7rem] leading-none text-[var(--tp-bark)] sm:text-[3.2rem]">Thunderpoint</a>
+                            <a href="{{ route('home') }}" class="font-display text-[2rem] leading-none text-[var(--tp-bark)] min-[400px]:text-[2.7rem] sm:text-[3.2rem]">Thunderpoint</a>
                         </div>
 
                         {{ $slot }}
