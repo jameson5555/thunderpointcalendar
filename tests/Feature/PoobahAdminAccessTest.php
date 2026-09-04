@@ -309,7 +309,7 @@ class PoobahAdminAccessTest extends TestCase
         $managedAreas = LivingArea::query()->take(2)->get();
         $poobah->managedAreas()->attach($managedAreas->pluck('id'), ['role' => 'poobah']);
 
-        Booking::query()->create([
+        $originalBooking = Booking::query()->create([
             'booking_group' => 'poobah-edit-group',
             'living_area_id' => $managedAreas->first()->id,
             'created_by' => $guest->id,
@@ -335,11 +335,14 @@ class PoobahAdminAccessTest extends TestCase
             ->assertRedirect(route('admin.index', absolute: false));
 
         $this->assertDatabaseHas('bookings', [
+            'id' => $originalBooking->id,
+            'booking_group' => 'poobah-edit-group',
             'guest_name' => 'New Managed Guest',
             'living_area_id' => $managedAreas->first()->id,
             'status' => Booking::STATUS_ACTIVE,
         ]);
         $this->assertDatabaseHas('bookings', [
+            'booking_group' => 'poobah-edit-group',
             'guest_name' => 'New Managed Guest',
             'living_area_id' => $managedAreas->last()->id,
             'status' => Booking::STATUS_ACTIVE,
@@ -358,10 +361,8 @@ class PoobahAdminAccessTest extends TestCase
                 ))
                 ->all(),
         );
-        $this->assertDatabaseHas('bookings', [
-            'booking_group' => 'poobah-edit-group',
-            'status' => Booking::STATUS_CANCELLED,
-        ]);
+        $this->assertSame(2, Booking::query()->where('booking_group', 'poobah-edit-group')->count());
+        $this->assertSame(0, Booking::query()->where('booking_group', 'poobah-edit-group')->where('status', Booking::STATUS_CANCELLED)->count());
     }
 
     public function test_poobah_can_cancel_a_confirmed_stay_for_managed_areas(): void

@@ -310,6 +310,12 @@ class AdminBookingApprovalTest extends TestCase
             ]);
         }
 
+        $originalBookingIds = Booking::query()
+            ->where('booking_group', 'editable-group')
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
+
         $this->actingAs($admin)
             ->get(route('admin.index'))
             ->assertOk()
@@ -330,10 +336,14 @@ class AdminBookingApprovalTest extends TestCase
 
         $response->assertRedirect(route('admin.index', absolute: false));
 
-        $this->assertSame(2, Booking::query()->where('guest_name', 'Updated Active Guest')->where('status', Booking::STATUS_ACTIVE)->count());
-        $this->assertSame(2, Booking::query()->where('booking_group', 'editable-group')->where('status', Booking::STATUS_CANCELLED)->count());
+        $this->assertSame(2, Booking::query()->where('booking_group', 'editable-group')->where('guest_name', 'Updated Active Guest')->where('status', Booking::STATUS_ACTIVE)->count());
+        $this->assertSame(
+            $originalBookingIds,
+            Booking::query()->where('booking_group', 'editable-group')->orderBy('id')->pluck('id')->all(),
+        );
+        $this->assertSame(0, Booking::query()->where('booking_group', 'editable-group')->where('status', Booking::STATUS_CANCELLED)->count());
         $this->assertSame(2, BookingActivityLog::query()->where('action', 'booking_updated')->count());
-        $this->assertSame(2, BookingActivityLog::query()->where('action', 'booking_cancelled')->where('details->reason', 'replaced_by_edit')->count());
+        $this->assertSame(0, BookingActivityLog::query()->where('action', 'booking_cancelled')->count());
     }
 
     public function test_admin_can_cancel_a_confirmed_booking_group(): void

@@ -129,6 +129,80 @@ class BookingGroupService
             ->get();
     }
 
+    public function updateActive(User $actor, string $bookingGroup, Collection $livingAreas, array $attributes): Collection
+    {
+        $startDate = CarbonImmutable::parse($attributes['start_date']);
+        $endDate = CarbonImmutable::parse($attributes['end_date']);
+
+        $this->ensureAreasAreAvailable($livingAreas, $startDate, $endDate, $bookingGroup);
+
+        DB::transaction(function () use ($actor, $bookingGroup, $livingAreas, $attributes, $startDate, $endDate): void {
+            $existingBookings = Booking::query()
+                ->where('booking_group', $bookingGroup)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('living_area_id');
+
+            abort_if($existingBookings->isEmpty(), 404);
+            abort_unless(
+                $existingBookings->every(fn (Booking $booking) => $booking->status === Booking::STATUS_ACTIVE),
+                403,
+            );
+
+            $originalBooking = $existingBookings->first();
+            $creator = User::query()->findOrFail($originalBooking->created_by);
+            $amountCents = $this->calculateAmountCents($creator, $livingAreas, $startDate, $endDate);
+            $paymentMethod = $attributes['payment_method'] ?? 'pay_later';
+            $paymentReference = $attributes['payment_reference'] ?? null;
+            $paymentStatus = $this->resolvePaymentStatus($paymentMethod, $paymentReference);
+            $selectedAreaIds = $livingAreas->pluck('id');
+
+            foreach ($livingAreas as $livingArea) {
+                $values = [
+                    'guest_name' => $attributes['guest_name'],
+                    'start_date' => $startDate->toDateString(),
+                    'end_date' => $endDate->toDateString(),
+                    'status' => Booking::STATUS_ACTIVE,
+                    'note' => $attributes['note'] ?? null,
+                    'amount_cents' => $amountCents,
+                    'payment_status' => $paymentStatus,
+                    'payment_method' => $paymentMethod,
+                    'payment_reference' => $paymentReference,
+                    'cancelled_by' => null,
+                    'cancelled_at' => null,
+                ];
+
+                $existingBooking = $existingBookings->get($livingArea->id);
+
+                if ($existingBooking) {
+                    $existingBooking->forceFill($values)->save();
+                    continue;
+                }
+
+                Booking::create([
+                    'booking_group' => $bookingGroup,
+                    'living_area_id' => $livingArea->id,
+                    'created_by' => $originalBooking->created_by,
+                    'approved_by' => $originalBooking->approved_by ?? $actor->id,
+                    'approved_at' => $originalBooking->approved_at ?? now(),
+                    ...$values,
+                ]);
+            }
+
+            Booking::query()
+                ->where('booking_group', $bookingGroup)
+                ->whereNotIn('living_area_id', $selectedAreaIds)
+                ->delete();
+        });
+
+        return Booking::query()
+            ->with(['livingArea', 'creator', 'approver'])
+            ->where('booking_group', $bookingGroup)
+            ->where('status', Booking::STATUS_ACTIVE)
+            ->orderBy('living_area_id')
+            ->get();
+    }
+
     public function resolvePaymentStatus(string $paymentMethod, ?string $paymentReference): string
     {
         if ($paymentMethod === 'pay_later') {
